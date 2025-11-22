@@ -1,0 +1,80 @@
+.alert-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.washer-loader {
+    display: flex;
+    justify-content: center;
+    width: 88px;
+    height: 88px;
+}
+
+.washer {
+    width: 70px;
+    height: 100%;
+    background: var(--primary-color);
+    position: relative;
+    border-radius: 10px;
+}
+.washer:before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--background);
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    border-radius: 50%;
+}
+.washer:after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--background);
+    position: absolute;
+    top: 10px;
+    left: 22px;
+    border-radius: 50%;
+}
+
+.door {
+    width: 50px;
+    height: 50px;
+    background: var(--background);
+    position: absolute;
+    top: 52px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+}
+
+.clothes {
+    width: 34px;
+    height: 34px;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    animation: rotate 1.5s linear infinite;
+}
+.clothes:before {
+    content: "";
+    width: 34px;
+    height: 17px;
+    background: var(--primary-color);
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-top-left-radius: 50% 100%;
+    border-top-right-radius: 50% 100%;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

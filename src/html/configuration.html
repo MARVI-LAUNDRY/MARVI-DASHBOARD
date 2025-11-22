@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Configuración</title>
+    </head>
+    <body>
+        <section class="section-configuration">
+            <header class="header-configuration">
+                <p>Configuración de usuario</p>
+                <div class="form-check form-switch form-check-reverse" title="Modo oscuro">
+                    <input class="form-check-input focus-ring" type="checkbox" role="switch" id="switchTheme" />
+                    <label class="form-check-label" for="switchTheme"><i class="bi bi bi-cloud-moon-fill"></i> Modo oscuro</label>
+                </div>
+            </header>
+            <article class="article-configuration">
+                <div class="profile">
+                    <img src="http://localhost:3000/img/profile/0.jpg" id="profile" alt="Foto de perfil" class="img-fluid rounded-circle" />
+                    <button type="button" class="btn bell" id="pencil" data-bs-toggle="modal" data-bs-target="#profilePics"><i class="bi bi-pencil-fill"></i></button>
+                </div>
+                <div class="user-info">
+                    <form id="formUser">
+                        <div class="row mb-4">
+                            <div class="col">
+                                <label for="user" class="form-label">Usuario*</label>
+                                <input type="text" id="user" class="form-control focus-ring" placeholder="Escribe tu usuario" required disabled />
+                            </div>
+                            <div class="col">
+                                <label for="name" class="form-label">Nombre*</label>
+                                <input type="text" id="name" class="form-control focus-ring" placeholder="Escribe tu nombre" required disabled />
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col">
+                                <label for="firstSurname" class="form-label">Primer apellido*</label>
+                                <input type="text" id="firstSurname" class="form-control focus-ring" placeholder="Escribe tu primer apellido" required disabled />
+                            </div>
+                            <div class="col">
+                                <label for="secondSurname" class="form-label">Segundo apellido*</label>
+                                <input type="text" id="secondSurname" class="form-control focus-ring" placeholder="Escribe tu segundo apellido" required disabled />
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col">
+                                <label for="email" class="form-label">Correo*</label>
+                                <input type="email" id="email" class="form-control focus-ring" placeholder="Escribe tu correo electrónico" required disabled />
+                            </div>
+                            <div class="col">
+                                <label for="role" class="form-label">Rol*</label>
+                                <select class="form-select focus-ring" id="role" disabled required>
+                                    <option value="A">Administrador</option>
+                                    <option value="U">Usuario</option>
+                                    <option value="I">Invitado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row gap-3">
+                            <div class="col text-center">
+                                <button type="button" class="btn secondary d-none" id="cancel"><i class="bi bi-trash3"></i> Cancelar cambios</button>
+                                <button type="button" class="btn primary" id="edit"><i class="bi bi-pencil-square"></i> Modificar información</button>
+                            </div>
+                            <div class="col text-center">
+                                <button type="submit" class="btn primary" id="save" disabled><i class="bi bi-save"></i> Guardar cambios</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </article>
+            <article class="article-configuration">
+                <div class="user-info">
+                    <form id="formPassword">
+                        <div class="row mb-4">
+                            <div class="col">
+                                <label for="password" class="form-label">Contraseña*</label>
+                                <div class="input-password">
+                                    <input type="password" id="password" placeholder="Ingresa tu contraseña" disabled required/>
+                                    <span id="eye" ><i class="bi bi-eye"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row gap-3">
+                            <div class="col text-center">
+                                <button type="button" class="btn secondary d-none" id="cancelPassword"><i class="bi bi-trash3"></i> Cancelar cambios</button>
+                                <button type="button" class="btn primary" id="editPassword"><i class="bi bi-pencil-square"></i> Modificar contraseña</button>
+                            </div>
+                            <div class="col text-center">
+                                <button type="submit" class="btn primary" id="savePassword" disabled><i class="bi bi-save"></i> Guardar cambios</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        </section>
+
+        <div class="modal fade" id="profilePics" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="profilePicsLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header justify-content-center">
+                        <h3 id="profilePicsLabel">Elige una foto de perfil</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row row-cols-4 g-4">
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/1.jpg" alt="Perfil 1" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/2.jpg" alt="Perfil 2" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/3.jpg" alt="Perfil 3" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/4.jpg" alt="Perfil 4" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/5.jpg" alt="Perfil 5" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/6.jpg" alt="Perfil 6" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/7.jpg" alt="Perfil 7" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/8.jpg" alt="Perfil 8" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/9.jpg" alt="Perfil 9" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/10.jpg" alt="Perfil 10" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/11.jpg" alt="Perfil 11" class="img-fluid" />
+                            </div>
+                            <div class="col">
+                                <img src="http://localhost:3000/img/profile/12.jpg" alt="Perfil 12" class="img-fluid" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn primary" id="profileCancel" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

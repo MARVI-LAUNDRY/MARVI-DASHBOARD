@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Usuarios</title>
+        <!-- Estilos de bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+        <!-- Iconos de bootstrap -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+        <!-- Estilo propio -->
+        <link rel="stylesheet" href="../css/tables.css" />
+    </head>
+
+    <body>
+        <div class="header">
+            <p>Lista de usuarios</p>
+            <div class="d-flex gap-3">
+                <button class="btn delete d-none" id="delete" title="Eliminar"><i class="bi bi-trash3"></i> Eliminar</button>
+                <button class="btn filter" id="filter" data-bs-toggle="dropdown" title="Filtros de la tabla"><i class="bi bi-filter"></i> Filtros</button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button class="dropdown-item" data-filter="usuario"><i class="bi bi-filter-left"></i> Usuario</button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item" data-filter="nombre_completo"><i class="bi bi-filter-left"></i> Nombre</button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item" data-filter="correo"><i class="bi bi-filter-left"></i> Correo</button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item" data-filter="rol_usuario"><i class="bi bi-filter-left"></i> Rol</button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item" data-filter="fecha_registro"><i class="bi bi-filter-left"></i> Fecha de registro</button>
+                    </li>
+                </ul>
+
+                <button class="btn filter" id="order" title="Ordenar tabla"><i class="bi bi-arrow-down-up"></i> Orden</button>
+                <button class="btn new" id="newUserBtn" title="Nuevo registro" data-bs-toggle="offcanvas" href="#offcanvasNewUser" role="button" aria-controls="offcanvasNewUser"><i class="bi bi-plus-lg"></i> Nuevo usuario</button>
+            </div>
+        </div>
+
+        <div class="table-container position-relative" id="tableContainer">
+            <div class="table-expand">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center"><i class="bi bi-check-square-fill"></i></th>
+                            <th scope="col">Usuario</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Correo</th>
+                            <th scope="col">Rol</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Registrado</th>
+                            <th scope="col" class="text-center"><i class="bi bi-caret-down-fill"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+            <div class="table-footer">
+                <p><span id="rowSelectNum">0</span> de <span id="rowsNum">0</span> filas seleccionadas</p>
+                <div class="d-flex gap-3 align-items-center">
+                    <p>Página <span id="currentPageNum">1</span> de <span id="totalPagesNum">1</span></p>
+                    <button class="btn filter" id="start" disabled><i class="bi bi-chevron-double-left"></i></button>
+                    <button class="btn filter" id="prev" disabled><i class="bi bi-chevron-left"></i></button>
+                    <button class="btn filter" id="next" disabled><i class="bi bi-chevron-right"></i></button>
+                    <button class="btn filter" id="end" disabled><i class="bi bi-chevron-double-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de usuarios -->
+        <div class="offcanvas form-new-user offcanvas-end" data-bs-backdrop="static" tabindex="-1" id="offcanvasNewUser" aria-labelledby="offcanvasNewUserLabel">
+            <div class="offcanvas-header d-flex justify-content-between">
+                <button type="button" class="btn close" id="close" data-bs-dismiss="offcanvas" aria-label="close"><i class="bi bi-x-lg"></i></button>
+                <p class="offcanvas-title" id="offcanvasNewUserLabel">Usuarios</p>
+                <button type="button" class="btn edit" id="edit" title="Editar usuario" disabled><i class="bi bi-pencil-square"></i></button>
+            </div>
+            <div class="offcanvas-body">
+                <p class="text-center">En esta sección vamos a crear y actualizar los usuarios del sistema, a continuación llena la información solicitada* para crear o actualizar el usuario.</p>
+                <form id="formNewUser">
+                    <div class="row">
+                        <div class="col">
+                            <label for="user" class="form-label">Usuario*</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="user" placeholder="Nombre del usuario" required />
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="name" class="form-label">Nombre*</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="name" placeholder="Nombre del usuario" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="firstSurname" class="form-label">Primer apellido*</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="firstSurname" placeholder="Nombre del usuario" required />
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="secondSurname" class="form-label">Segundo apellido*</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="secondSurname" placeholder="Nombre del usuario" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="email" class="form-label">Correo electrónico*</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="email" class="form-control focus-ring" id="email" placeholder="Correo electrónico del usuario" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="role" class="form-label">Rol*</label>
+                            <select class="form-select focus-ring" id="role" aria-label="Default select example" required>
+                                <option value="A" selected>Administrador</option>
+                                <option value="U">Usuario</option>
+                                <option value="I">Invitado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row m-0">
+                        <div class="col">
+                            <button class="btn secondary w-100" id="cancel" type="button" data-bs-dismiss="offcanvas">Cancelar</button>
+                        </div>
+                        <div class="col">
+                            <button class="btn primary w-100" id="save" type="submit">Guardar usuario</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    </body>
+</html>

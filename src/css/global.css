@@ -1,0 +1,451 @@
+@import url("loader.css");
+
+/* Variables */
+:root {
+    --primary-color: #dd5746;
+    --secondary-color: #ffe1c0;
+    --hover-color-p: #e96d5c;
+    --hover-color-s: #ffd3b0;
+
+    /* Tema default */
+    --background: #ffffff;
+    --background-content: #f8f9fa;
+    --border: #dcdfe3;
+    --hover-border: #b8bfc5;
+    --text: #2d3e58;
+    --placeholder: #a6a6a6;
+
+    /* Tema oscuro */
+    --background-dark: #2e2e2e;
+    --background-content-dark: #252525;
+    --border-dark: #444444;
+    --hover-border-dark: #555555;
+    --text-dark: #f0f0f0;
+    --placeholder-dark: #a0a0a0;
+
+    /* Tema claro */
+    --background-light: #ffffff;
+    --background-content-light: #f8f9fa;
+    --border-light: #dcdfe3;
+    --hover-border-light: #b8bfc5;
+    --text-light: #2d3e58;
+    --placeholder-light: #a6a6a6;
+}
+
+/* Todo el content */
+* {
+    font-family: "Inter", sans-serif;
+    scrollbar-color: var(--border) transparent;
+    scrollbar-width: thin;
+}
+
+/* Cuerpo global */
+html {
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+body {
+    background: var(--background);
+    color: var(--text);
+}
+
+/* Alertas */
+.swal2-icon:has(.washer-loader) {
+    border: none;
+}
+.alert-popup {
+    background: var(--background) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+}
+.alert-popup h2 {
+    color: var(--primary-color);
+}
+.alert-popup .swal2-html-container {
+    color: var(--text);
+}
+.alert-confirm {
+    background: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    box-shadow: none !important;
+}
+.alert-cancel {
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    border-radius: 8px;
+    box-shadow: none !important;
+}
+
+/* Botones */
+.btn {
+    border: 1px solid transparent !important;
+    border-radius: 8px;
+    padding: 8px 20px;
+    outline: none !important;
+}
+.btn:focus {
+    background: var(--hover-color-p) !important;
+    border-color: transparent;
+}
+
+/* Botón primario */
+.primary {
+    background: var(--primary-color);
+    color: white;
+}
+.primary:hover {
+    background: var(--hover-color-p);
+    color: white;
+}
+.primary:active {
+    background: var(--primary-color) !important;
+    color: white !important;
+}
+.primary:disabled {
+    background: var(--border);
+    border-color: var(--hover-border) !important;
+}
+
+/* Botón secundario */
+.secondary {
+    background: var(--secondary-color);
+    color: var(--primary-color);
+}
+.secondary:hover {
+    background: var(--hover-color-s);
+    color: var(--primary-color);
+}
+.secondary:active {
+    background: var(--secondary-color) !important;
+    color: var(--primary-color) !important;
+}
+.secondary:disabled {
+    background: var(--border);
+    border-color: var(--hover-border) !important;
+}
+
+/* Botón link secundario */
+.secondary-link {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+.secondary-link:hover {
+    text-decoration: underline;
+    color: var(--hover-color-p);
+}
+.secondary-link:active {
+    background: var(--secondary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+/* Botones de formularios */
+.edit,
+.close {
+    color: var(--text);
+}
+.edit:hover,
+.close:hover {
+    color: var(--hover-color-p);
+}
+.edit:active,
+.close:active {
+    color: var(--primary-color);
+}
+.edit:disabled,
+.close:disabled {
+    color: var(--placeholder);
+}
+
+/* Botones de tablas */
+.delete,
+.new,
+.filter {
+    background: var(--background);
+    border-color: var(--border) !important;
+    color: var(--text);
+}
+.delete:hover,
+.new:hover,
+.filter:hover {
+    background: var(--background-content);
+}
+.delete:active,
+.delete:focus,
+.new:active,
+.new:focus,
+.filter:active,
+.filter:focus {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+}
+.delete,
+.new {
+    color: var(--primary-color);
+}
+.delete:hover,
+.new:hover {
+    background: var(--primary-color);
+    color: white;
+}
+.options {
+    color: var(--text);
+}
+.options:hover {
+    color: var(--hover-color-p);
+}
+.options:active,
+.options:focus {
+    color: var(--primary-color);
+}
+
+/* Botón de ojo */
+.eye i:hover {
+    color: var(--primary-color) !important;
+}
+.eye i:active {
+    color: var(--text) !important;
+}
+
+/* Botón de menu */
+.menu {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    color: var(--placeholder);
+    border-radius: 8px;
+}
+.menu:hover {
+    color: var(--primary-color);
+}
+.menu:active {
+    color: var(--text);
+    transform: scale(0.9);
+}
+
+/* Botón de notificaciones */
+.bell {
+    width: 48px;
+    height: 48px;
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    border-radius: 50%;
+    padding: 0;
+    transition: all 0.3s;
+}
+.bell:hover {
+    background: var(--hover-color-s);
+    color: var(--primary-color);
+}
+.bell:active {
+    background: var(--primary-color) !important;
+    color: white !important;
+}
+.bell:focus {
+    transform: scale(1.05);
+}
+.bell:disabled {
+    background: var(--border);
+    color: var(--text);
+}
+
+/* Inputs */
+input:not([type="checkbox"]),
+select,
+textarea {
+    background: var(--background) !important;
+    color: var(--text) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border) !important;
+    padding: 12px !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+input:not([type="checkbox"])::placeholder,
+select::placeholder,
+textarea::placeholder {
+    color: var(--placeholder) !important;
+}
+input:not([type="checkbox"]):hover,
+select:hover,
+textarea:hover {
+    border-color: var(--hover-border) !important;
+}
+input:not([type="checkbox"]):focus,
+select:focus,
+textarea:focus {
+    background: var(--background);
+    color: var(--text);
+    border-color: var(--primary-color) !important;
+}
+input:disabled:not([type="checkbox"]),
+select:disabled,
+textarea:disabled {
+    color: var(--placeholder) !important;
+    background: var(--background-content) !important;
+}
+select option {
+    background: var(--background);
+    color: var(--text);
+}
+input[type="file"] {
+    background: var(--background);
+    width: 100%;
+}
+input[type="file"]::file-selector-button {
+    background: transparent;
+    color: var(--text);
+}
+
+/* Grupos de input */
+.input-group input,
+.input-group select,
+.input-group button,
+.input-group span {
+    border: none !important;
+    border-radius: 0 !important;
+}
+.input-group input,
+.input-group span {
+    color: var(--placeholder);
+    background: transparent;
+}
+.input-group:has(input:disabled) span {
+    color: var(--placeholder);
+}
+.input-group {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.input-group:hover {
+    border-color: var(--hover-border);
+}
+.input-group:focus-within {
+    border-color: var(--primary-color);
+}
+.input-group:has(input:disabled) {
+    background: var(--background-content);
+}
+.input-group i {
+    color: var(--placeholder);
+}
+.input-password {
+    position: relative;
+}
+.input-password > input {
+    width: 100%;
+}
+.input-password > span {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-45%);
+    cursor: pointer;
+    font-size: 1.4rem;
+    color: var(--hover-border);
+}
+.input-password > span:hover {
+    color: var(--primary-color);
+}
+
+/* Checkbox y switch */
+input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+.form-check {
+    width: max-content;
+    border-radius: 8px;
+}
+.form-check-input {
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    box-shadow: none !important;
+}
+.form-check-input:hover:not(:checked) {
+    border-color: var(--hover-border);
+}
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.form-check-input:focus:not(:checked) {
+    border-color: var(--hover-border);
+}
+.form-check-input:checked::before {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.form-switch .form-check-input:focus:not(:checked) {
+    /* prettier-ignore */
+    --bs-form-switch-bg:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='rgba%280, 0, 0, 0.25%29'/></svg>");
+}
+
+/* Modificaciones del webkit */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="search"]::-webkit-search-cancel-button {
+    opacity: 0;
+}
+input[type="date"],
+input[type="time"] {
+    position: relative;
+}
+input[type="date"]::after,
+input[type="time"]::after {
+    font-family: "bootstrap-icons";
+    content: "\F214";
+    color: var(--text);
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+input[type="date"]:disabled::after,
+input[type="time"]:disabled::after {
+    color: var(--placeholder);
+}
+input[type="date"]:focus::after,
+input[type="time"]:focus::after {
+    color: var(--primary-color);
+}
+input[type="search"] {
+    position: relative;
+    z-index: 1 !important;
+}
+.input-group:has(input[type="search"]) {
+    position: relative;
+}
+.input-group:has(input[type="search"]):focus-within::after {
+    font-family: "bootstrap-icons";
+    content: "\F659";
+    color: var(--placeholder);
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 2;
+}
+input:-webkit-autofill,
+textarea:-webkit-autofill {
+    transition: background-color 60s !important;
+    -webkit-box-shadow: 0 0 0px 500px var(--background) inset !important;
+    -webkit-text-fill-color: var(--primary-color);
+}
+input[type="file"]::file-selector-button,
+input[type="file"]::-webkit-file-upload-button {
+    background: transparent;
+    color: var(--text);
+    border: none;
+    border-right: 1px solid var(--border);
+}
+input[type="file"]::file-selector-button:hover,
+input[type="file"]::-webkit-file-upload-button:hover {
+    background: transparent;
+}

@@ -1,0 +1,88 @@
+.section-configuration {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    gap: 16px;
+    flex-direction: column;
+    justify-content: start;
+}
+.header-configuration {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    color: var(--text);
+}
+.header-configuration p {
+    margin: 0;
+    font-weight: bold;
+}
+.article-configuration {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 32px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+}
+
+.profile {
+    position: relative;
+    width: 256px;
+    height: 256px;
+}
+.profile img {
+    position: absolute;
+    width: 256px;
+    height: 256px;
+    border-radius: 50%;
+}
+.profile button {
+    scale: 1.2;
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+.profile button:hover:not(:disabled) {
+    transform: scale(1.1);
+}
+
+.user-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: max-content;
+}
+
+.modal-content {
+    background: var(--background) !important;
+    border-radius: 8px !important;
+    border-left: solid 32px var(--background) !important;
+    border-right: solid 32px var(--background) !important;
+}
+.modal-body {
+    background: var(--background-content) !important;
+    border-radius: 8px !important;
+    padding: 32px !important;
+    scrollbar-width: none;
+}
+.modal-header,
+.modal-footer {
+    border: none !important;
+}
+.modal-content h3 {
+    font-weight: bold;
+    margin: 0;
+}
+.modal-content img {
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.modal-content img:hover {
+    transform: scale(1.02);
+}

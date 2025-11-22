@@ -1,0 +1,102 @@
+@import url("global.css");
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+h2 {
+    margin: 0;
+}
+
+p {
+    margin: 0;
+}
+
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -1;
+}
+
+.input-label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100vw;
+    padding: 64px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.navbar > img {
+    height: 4rem;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100vw;
+    padding: 64px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.navbar.hide, .footer.hide {
+    animation: hide 0.25s forwards;
+}
+
+.navbar.show, .footer.show {
+    animation: show 0.25s forwards;
+}
+
+.main {
+    width: calc((100vw / 2) * 3);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.login-form, .recovery-form {
+    width: calc(100vw / 2);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    justify-content: center;
+    padding: 5%;
+    background-color: var(--background-content);
+}
+
+.login-image {
+    flex: 1;
+}
+
+
+@keyframes hide {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes show {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
