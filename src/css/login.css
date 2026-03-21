@@ -67,7 +67,7 @@ p {
     align-items: center;
 }
 
-.login-form, .recovery-form {
+.login-form, .recovery-form, .reset-form {
     width: calc(100vw / 2);
     height: 100vh;
     display: flex;

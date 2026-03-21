@@ -85,7 +85,6 @@ body {
     outline: none !important;
 }
 .btn:focus {
-    background: var(--hover-color-p) !important;
     border-color: transparent;
 }
 
@@ -97,6 +96,10 @@ body {
 .primary:hover {
     background: var(--hover-color-p);
     color: white;
+}
+.primary:focus {
+    background: var(--primary-color) !important;
+    color: white !important;
 }
 .primary:active {
     background: var(--primary-color) !important;

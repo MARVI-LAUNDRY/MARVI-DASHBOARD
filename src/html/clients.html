@@ -15,13 +15,14 @@
         <div class="header">
             <p>Lista de clientes</p>
             <div class="d-flex gap-3">
+                <button class="btn delete d-none" id="delete" title="Eliminar"><i class="bi bi-trash3"></i> Eliminar</button>
                 <button class="btn filter" id="filter" data-bs-toggle="dropdown" title="Filtros de la tabla"><i class="bi bi-filter"></i> Filtros</button>
                 <ul class="dropdown-menu">
                     <li>
-                        <button class="dropdown-item" data-filter="cliente"><i class="bi bi-filter-left"></i> Usuario</button>
+                        <button class="dropdown-item" data-filter="codigo"><i class="bi bi-filter-left"></i> Código</button>
                     </li>
                     <li>
-                        <button class="dropdown-item" data-filter="nombre_completo"><i class="bi bi-filter-left"></i> Nombre</button>
+                        <button class="dropdown-item" data-filter="nombre"><i class="bi bi-filter-left"></i> Nombre</button>
                     </li>
                     <li>
                         <button class="dropdown-item" data-filter="correo"><i class="bi bi-filter-left"></i> Correo</button>
@@ -30,12 +31,12 @@
                         <button class="dropdown-item" data-filter="telefono"><i class="bi bi-filter-left"></i> Teléfono</button>
                     </li>
                     <li>
-                        <button class="dropdown-item" data-filter="fecha_registro"><i class="bi bi-filter-left"></i> Fecha de registro</button>
+                        <button class="dropdown-item" data-filter="createdAt"><i class="bi bi-filter-left"></i> Fecha</button>
                     </li>
                 </ul>
 
                 <button class="btn filter" id="order" title="Ordenar tabla"><i class="bi bi-arrow-down-up"></i> Orden</button>
-                <button class="btn filter" title="Clientes" disabled><i class="bi bi-people"></i> Clientes</button>
+                <button class="btn new" id="newClientBtn" title="Nuevo registro" data-bs-toggle="offcanvas" href="#offcanvasNewClient" role="button" aria-controls="offcanvasNewClient"><i class="bi bi-plus-lg"></i> Nuevo cliente</button>
             </div>
         </div>
 
@@ -44,19 +45,20 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th scope="col">Usuario</th>
+                            <th scope="col" class="text-center"><i class="bi bi-check-square-fill"></i></th>
+                            <th scope="col">Código</th>
                             <th scope="col">Nombre</th>
                             <th scope="col">Correo</th>
                             <th scope="col">Teléfono</th>
-                            <th scope="col">Dirección</th>
                             <th scope="col">Registrado</th>
+                            <th scope="col" class="text-center"><i class="bi bi-caret-down-fill"></i></th>
                         </tr>
                     </thead>
                     <tbody id="tbody"></tbody>
                 </table>
             </div>
             <div class="table-footer">
-                <p></p>
+                <p><span id="rowSelectNum">0</span> de <span id="rowsNum">0</span> filas seleccionadas</p>
                 <div class="d-flex gap-3 align-items-center">
                     <p>Página <span id="currentPageNum">1</span> de <span id="totalPagesNum">1</span></p>
                     <button class="btn filter" id="start" disabled><i class="bi bi-chevron-double-left"></i></button>
@@ -64,6 +66,70 @@
                     <button class="btn filter" id="next" disabled><i class="bi bi-chevron-right"></i></button>
                     <button class="btn filter" id="end" disabled><i class="bi bi-chevron-double-right"></i></button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Formulario de clientes -->
+        <div class="offcanvas form-basic offcanvas-end" data-bs-backdrop="static" tabindex="-1" id="offcanvasNewClient" aria-labelledby="offcanvasNewClientLabel">
+            <div class="offcanvas-header d-flex justify-content-between">
+                <button type="button" class="btn close" id="close" data-bs-dismiss="offcanvas" aria-label="close"><i class="bi bi-x-lg"></i></button>
+                <p class="offcanvas-title" id="offcanvasNewClientLabel">Clientes</p>
+                <button type="button" class="btn edit" id="edit" title="Editar cliente" disabled><i class="bi bi-pencil-square"></i></button>
+            </div>
+            <div class="offcanvas-body">
+                <p class="text-center">En esta sección vamos a crear y actualizar los clientes, a continuación llena la información solicitada* para crear o actualizar el cliente.</p>
+                <form id="formNewClient">
+                    <div class="row">
+                        <div class="col">
+                            <label for="code" class="form-label">Código*</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="code" placeholder="Código del cliente" required />
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="name" class="form-label">Nombre*</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="name" placeholder="Nombre del cliente" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="firstSurname" class="form-label">Primer apellido</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="firstSurname" placeholder="Primer apellido del cliente" />
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="secondSurname" class="form-label">Segundo apellido</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="secondSurname" placeholder="Segundo apellido del cliente" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="email" class="form-label">Correo electrónico</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="email" class="form-control focus-ring" id="email" placeholder="Correo del cliente" />
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="phone" class="form-label">Teléfono</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="phone" placeholder="Teléfono del cliente" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row m-0">
+                        <div class="col">
+                            <button class="btn secondary w-100" id="cancel" type="button" data-bs-dismiss="offcanvas">Cancelar</button>
+                        </div>
+                        <div class="col">
+                            <button class="btn primary w-100" id="save" type="submit">Guardar cliente</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
 

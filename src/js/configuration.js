@@ -15,8 +15,9 @@ let firstSurname = null;
 let secondSurname = null;
 let email = null;
 let role = null;
-let password = null;
-let eyeBtn = null;
+let oldPassword = null;
+let newPassword = null;
+let viewPasswordBtn = null;
 
 let cancelBtn = null;
 let editBtn = null;
@@ -41,9 +42,10 @@ const disableInputs = (disabled) => {
 };
 
 const disableInputPassword = (disabled) => {
-    password.disabled = disabled;
-    password.value = disabled ? '********' : "";
-    eyeBtn.disabled = disabled;
+    oldPassword.disabled = disabled;
+    oldPassword.value = disabled ? '********' : "";
+    newPassword.disabled = disabled;
+    newPassword.value = disabled ? '********' : "";
     savePasswordBtn.disabled = disabled;
 }
 
@@ -59,8 +61,9 @@ export const readyConfiguration = () => {
     secondSurname = document.getElementById("secondSurname");
     email = document.getElementById("email");
     role = document.getElementById("role");
-    password = document.getElementById("password");
-    eyeBtn = document.getElementById("eye");
+    oldPassword = document.getElementById("oldPassword");
+    newPassword = document.getElementById("newPassword");
+    viewPasswordBtn = document.getElementsByName("eye");
 
     cancelBtn = document.getElementById("cancel");
     editBtn = document.getElementById("edit");
@@ -79,24 +82,20 @@ export const readyConfiguration = () => {
     const label = switchTeme.nextElementSibling;
     label.innerHTML = switchTeme.checked ? '<i class="bi bi bi-cloud-moon-fill"></i> Modo oscuro' : '<i class="bi bi bi-cloud-sun-fill"></i> Modo claro';
 
-    profile.src = currentSession?.imagen_src || "http://localhost:3000/img/profile/0.jpg";
+    profile.src = currentSession?.imagen_perfil || "https://marvi-api.onrender.com/pictures/profile/0.jpg";
     user.value = currentSession.usuario;
     name.value = currentSession.nombre;
     firstSurname.value = currentSession.primer_apellido;
     secondSurname.value = currentSession.segundo_apellido;
     email.value = currentSession.correo;
-    password.value = '********';
+    oldPassword.value = '********';
+    newPassword.value = '********';
 
     switchTeme.addEventListener("click", () => {
         label.innerHTML = switchTeme.checked ? '<i class="bi bi bi-cloud-moon-fill"></i> Modo oscuro' : '<i class="bi bi bi-cloud-sun-fill"></i> Modo oscuro';
         changeTheme();
     });
 
-    eyeBtn.addEventListener("click", () => {
-        const isPassword = password.type === "password";
-        password.type = isPassword ? "text" : "password";
-        eyeBtn.innerHTML = isPassword ? "<i class='bi bi-eye-slash'></i>" : "<i class='bi bi-eye'></i>";
-    });
 
     editBtn.addEventListener("click", async () => {
         if (await alertConfirm("Modificar información", "Al guardar los cambios se cerrar tu sesión", "question")) {
@@ -107,7 +106,7 @@ export const readyConfiguration = () => {
     });
 
     cancelBtn.addEventListener("click", () => {
-        profile.src = currentSession?.imagen_src || "http://localhost:3000/img/profile/0.jpg";
+        profile.src = currentSession?.imagen_perfil || "https://marvi-api.onrender.com/pictures/profile/0.jpg";
         disableInputs(true);
         editBtn.classList.remove("d-none");
         cancelBtn.classList.add("d-none");
@@ -116,8 +115,8 @@ export const readyConfiguration = () => {
     profilesPic.forEach((profilePic) => {
         profilePic.addEventListener("click", async () => {
             alertLoading('Actualizando foto de perfil', 'Por favor, no cierre ni actualice el navegador mientras se guardan los cambios.');
-            const response = await patchApi('users/image', {
-                usuario: currentSession.usuario, imagen_src: profilePic.src
+            const response = await patchApi(`users/${currentSession._id}/profile-image`, {
+                imagen_perfil: profilePic.src
             }, token)
             if (response.success) {
                 alertToast("Información actualizada", response.message, "success", "bottom-end").finally(() => {
@@ -137,7 +136,6 @@ export const readyConfiguration = () => {
         }
 
         const data = {
-            id_usuario: currentSession.id_usuario,
             usuario: user.value,
             nombre: name.value,
             primer_apellido: firstSurname.value,
@@ -149,7 +147,7 @@ export const readyConfiguration = () => {
 
         alertLoading("Actualizando usuario", "Por favor, no cierre ni actualice el navegador mientras se guardan los cambios.");
         try {
-            const response = await putApi("users", data, token);
+            const response = await putApi(`users/${currentSession._id}`, data, token);
 
             if (response.success) {
                 localStorage.setItem("user", JSON.stringify(data));
@@ -159,7 +157,7 @@ export const readyConfiguration = () => {
                 });
             } else {
                 const [firstMessage, secondMessage] = response.message.split(",");
-                alertMessage(firstMessage, secondMessage, "success").finally(() => {
+                alertMessage(firstMessage, secondMessage, "warning").finally(() => {
                     disableInputs(false);
                     editBtn.classList.add("d-none");
                     cancelBtn.classList.remove("d-none");
@@ -174,11 +172,22 @@ export const readyConfiguration = () => {
     });
 
     editPasswordBtn.addEventListener("click", async () => {
-        if (await alertConfirm("Modificar contraseña", "Tu nueva contraseña debe contener al menos 8 caracteres", "question")) {
+        if (await alertConfirm("Modificar contraseña", "Tu nueva contraseña debe contener al menos 6 caracteres", "question")) {
             disableInputPassword(false);
             editPasswordBtn.classList.add("d-none");
             cancelPasswordBtn.classList.remove("d-none");
         }
+    });
+
+    viewPasswordBtn.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const input = btn.previousElementSibling;
+            if (!input.disabled) {
+                const isPassword = input.type === "password";
+                input.type = isPassword ? "text" : "password";
+                btn.innerHTML = isPassword ? "<i class='bi bi-eye-slash'></i>" : "<i class='bi bi-eye'></i>";
+            }
+        });
     });
 
     cancelPasswordBtn.addEventListener("click", () => {
@@ -190,20 +199,20 @@ export const readyConfiguration = () => {
     formPassword.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        if (validatePasswordLength(password.value)) {
-            alertMessage("Contraseña inválida", "La contraseña debe tener al menos 8 caracteres y ser segura", "warning", 2500).then();
+        if (!validatePasswordLength(newPassword.value)) {
+            alertMessage("Contraseña inválida", "La contraseña debe tener al menos 6 caracteres y ser segura", "warning", 2500).then();
             return;
         }
 
         const data = {
-            usuario: currentSession.usuario, contrasena: password.value
+            contrasena_actual: oldPassword.value, contrasena_nueva: newPassword.value
         };
 
         disableInputPassword(true);
 
         alertLoading("Actualizando contraseña", "Por favor, no cierre ni actualice el navegador mientras se guardan los cambios.");
         try {
-            const response = await patchApi("users/password", data, token);
+            const response = await patchApi(`users/${currentSession._id}/password`, data, token);
 
             if (response.success) {
                 alertToast("Información actualizada", response.message, "success", "bottom-end").finally(() => {
@@ -211,7 +220,7 @@ export const readyConfiguration = () => {
                 });
             } else {
                 const [firstMessage, secondMessage] = response.message.split(",");
-                alertMessage(firstMessage, secondMessage, "success").finally(() => {
+                alertMessage(firstMessage, secondMessage, "warning").finally(() => {
                     disableInputPassword(false);
                     editPasswordBtn.classList.add("d-none");
                     cancelPasswordBtn.classList.remove("d-none");

@@ -5,9 +5,12 @@ import demo from "./home.js";
 import {handleSearchInput, readyUsers} from "./users.js";
 import {readyConfiguration} from "./configuration.js";
 import {readyProducts} from "./products.js";
-import {getApi, putApi} from "./api.js";
+import {getApi} from "./api.js";
 import {readyClients} from "./clients.js";
 import {readyOrders} from "./orders.js";
+import {readyProviders} from "./providers.js";
+import {readyPurchases} from "./purchases.js";
+import {readyServices} from "./services.js";
 
 const getCookie = (name) => {
     const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
@@ -23,7 +26,7 @@ if (!token) window.location.href = "../../";
 
 const decodedToken = jwtDecode(token);
 const mini = localStorage.getItem("mini") === "true";
-export let currentSession = await getApi(`users/${decodedToken.usuario_activo}`, token);
+export let currentSession = (await getApi(`users/${decodedToken.id}`, token)).data;
 
 const elements = {
     menuBtn: document.getElementById("menu"),
@@ -56,7 +59,7 @@ const loadHash = async () => {
     });
 
     const placeholders = {
-        orders: "Buscar pedidos", clients: "Buscar clientes", products: "Buscar productos", users: "Buscar usuarios",
+        orders: "Buscar pedidos", purchases: "Buscar compras", clients: "Buscar clientes", providers: "Buscar proveedores", products: "Buscar productos", services: "Buscar servicios", users: "Buscar usuarios",
     };
 
     if (placeholders[page]) {
@@ -67,6 +70,9 @@ const loadHash = async () => {
     }
 
     elements.searchInput.removeEventListener("input", handleSearchInput);
+    elements.searchInput.removeEventListener("keydown", handleSearchInput);
+    elements.searchInput.oninput = null;
+    elements.searchInput.onkeydown = null;
     elements.searchInput.value = "";
 
     switch (page) {
@@ -76,14 +82,23 @@ const loadHash = async () => {
         case "orders":
             readyOrders(elements.searchInput);
             break;
+        case "purchases":
+            readyPurchases(elements.searchInput);
+            break;
         case "clients":
             readyClients(elements.searchInput);
+            break;
+        case "providers":
+            readyProviders(elements.searchInput);
             break;
         case "products":
             readyProducts(elements.searchInput);
             break;
+        case "services":
+            readyServices(elements.searchInput);
+            break;
         case "users":
-            if (currentSession.rol !== "A") {
+            if (currentSession.rol !== "administrador") {
                 alertMessage("Acceso denegado", "No tienes permisos para acceder a esta página", "error", 5000)
                     .finally(() => window.history.back());
                 break;
@@ -97,11 +112,6 @@ const loadHash = async () => {
 };
 
 const ready = async () => {
-    if (!currentSession.en_linea) {
-        await putApi('login/user/session', {usuario: currentSession.usuario, en_linea: true}, token);
-        currentSession = await getApi(`users/${currentSession.usuario}`, token);
-    }
-
     if (mini) elements.menu.forEach(div => div.classList.add("mini"));
 
     loadTheme();
@@ -112,12 +122,14 @@ const ready = async () => {
         document.querySelector(".swal2-container").style.background = "var(--background-content)";
     }
 
-    if (currentSession.rol !== "A") {
+    if (currentSession.rol !== "administrador") {
         document.getElementById("users").style.display = "none";
         document.getElementById("clients").style.display = "none";
+        document.getElementById("providers").style.display = "none";
+        document.getElementById("purchases").style.display = "none";
     }
 
-    elements.userProfile.src = currentSession.imagen_src || "http://localhost:3000/img/profile/0.jpg";
+    elements.userProfile.src = currentSession.imagen_perfil || "https://marvi-api.onrender.com/pictures/profile/0.jpg";
     elements.userName.textContent = currentSession.nombre;
     elements.userSurnames.textContent = `${currentSession.primer_apellido} ${currentSession.segundo_apellido}`;
 };
@@ -131,8 +143,7 @@ elements.menuBtn.addEventListener("click", () => {
 
 elements.exitBtn.addEventListener("click", async () => {
     if (await alertConfirm("Cerrar sesión", "¿Estás seguro de que deseas cerrar sesión?", "question")) {
-        const response = await putApi('login/user/session', {usuario: currentSession.usuario, en_linea: false}, token);
-        alertToast(response.message, false, response.success ? "success" : "error", "bottom-end", 1500)
+        alertToast("Sesión terminada", false, "success", "bottom-end", 1500)
             .finally(() => {
                 deleteCookie('token');
                 window.location.href = "../../";
@@ -143,9 +154,12 @@ elements.exitBtn.addEventListener("click", async () => {
 });
 
 ready().then(() => {
-    if (currentSession.contrasena === "") alertMessage("Establecer contraseña", "Por seguridad, debes establecer tu contraseña antes de continuar.", "info", 5000).then(() => {
+    const cleanDate = (iso) => iso.replace(/\.\d{3}Z$/, "");
+
+    const createdAt = cleanDate(currentSession.createdAt);
+    const updatedAt = cleanDate(currentSession.updatedAt);
+
+    if (updatedAt === createdAt) alertMessage("Establecer contraseña", "Por seguridad, debes establecer tu contraseña antes de continuar.", "info", 5000).then(() => {
         window.location.hash = "#configuration";
     });
 });
-
-console.log(token);

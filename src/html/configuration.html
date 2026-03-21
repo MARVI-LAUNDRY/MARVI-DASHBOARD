@@ -16,7 +16,7 @@
             </header>
             <article class="article-configuration">
                 <div class="profile">
-                    <img src="http://localhost:3000/img/profile/0.jpg" id="profile" alt="Foto de perfil" class="img-fluid rounded-circle" />
+                    <img src="https://marvi-api.onrender.com/pictures/profile/0.jpg" id="profile" alt="Foto de perfil" class="img-fluid rounded-circle" />
                     <button type="button" class="btn bell" id="pencil" data-bs-toggle="modal" data-bs-target="#profilePics"><i class="bi bi-pencil-fill"></i></button>
                 </div>
                 <div class="user-info">
@@ -49,9 +49,9 @@
                             <div class="col">
                                 <label for="role" class="form-label">Rol*</label>
                                 <select class="form-select focus-ring" id="role" disabled required>
-                                    <option value="A">Administrador</option>
-                                    <option value="U">Usuario</option>
-                                    <option value="I">Invitado</option>
+                                    <option value="administrador">Administrador</option>
+                                    <option value="usuario">Usuario</option>
+                                    <option value="invitado">Invitado</option>
                                 </select>
                             </div>
                         </div>
@@ -72,10 +72,17 @@
                     <form id="formPassword">
                         <div class="row mb-4">
                             <div class="col">
-                                <label for="password" class="form-label">Contraseña*</label>
+                                <label for="oldPassword" class="form-label">Contraseña actual*</label>
                                 <div class="input-password">
-                                    <input type="password" id="password" placeholder="Ingresa tu contraseña" disabled required/>
-                                    <span id="eye" ><i class="bi bi-eye"></i></span>
+                                    <input type="password" id="oldPassword" placeholder="Ingresa tu contraseña" disabled/>
+                                    <span name="eye" ><i class="bi bi-eye"></i></span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label for="newPassword" class="form-label">Nueva contraseña*</label>
+                                <div class="input-password">
+                                    <input type="password" id="newPassword" placeholder="Ingresa tu nueva contraseña" disabled required/>
+                                    <span name="eye" ><i class="bi bi-eye"></i></span>
                                 </div>
                             </div>
                         </div>
@@ -102,40 +109,40 @@
                     <div class="modal-body">
                         <div class="row row-cols-4 g-4">
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/1.jpg" alt="Perfil 1" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/1.jpg" alt="Perfil 1" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/2.jpg" alt="Perfil 2" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/2.jpg" alt="Perfil 2" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/3.jpg" alt="Perfil 3" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/3.jpg" alt="Perfil 3" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/4.jpg" alt="Perfil 4" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/4.jpg" alt="Perfil 4" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/5.jpg" alt="Perfil 5" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/5.jpg" alt="Perfil 5" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/6.jpg" alt="Perfil 6" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/6.jpg" alt="Perfil 6" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/7.jpg" alt="Perfil 7" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/7.jpg" alt="Perfil 7" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/8.jpg" alt="Perfil 8" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/8.jpg" alt="Perfil 8" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/9.jpg" alt="Perfil 9" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/9.jpg" alt="Perfil 9" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/10.jpg" alt="Perfil 10" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/10.jpg" alt="Perfil 10" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/11.jpg" alt="Perfil 11" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/11.jpg" alt="Perfil 11" class="img-fluid" />
                             </div>
                             <div class="col">
-                                <img src="http://localhost:3000/img/profile/12.jpg" alt="Perfil 12" class="img-fluid" />
+                                <img src="https://marvi-api.onrender.com/pictures/profile/12.jpg" alt="Perfil 12" class="img-fluid" />
                             </div>
                         </div>
                     </div>

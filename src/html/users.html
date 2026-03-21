@@ -22,16 +22,13 @@
                         <button class="dropdown-item" data-filter="usuario"><i class="bi bi-filter-left"></i> Usuario</button>
                     </li>
                     <li>
-                        <button class="dropdown-item" data-filter="nombre_completo"><i class="bi bi-filter-left"></i> Nombre</button>
+                        <button class="dropdown-item" data-filter="nombre"><i class="bi bi-filter-left"></i> Nombre</button>
                     </li>
                     <li>
                         <button class="dropdown-item" data-filter="correo"><i class="bi bi-filter-left"></i> Correo</button>
                     </li>
                     <li>
-                        <button class="dropdown-item" data-filter="rol_usuario"><i class="bi bi-filter-left"></i> Rol</button>
-                    </li>
-                    <li>
-                        <button class="dropdown-item" data-filter="fecha_registro"><i class="bi bi-filter-left"></i> Fecha de registro</button>
+                        <button class="dropdown-item" data-filter="createdAt"><i class="bi bi-filter-left"></i> Fecha</button>
                     </li>
                 </ul>
 
@@ -50,7 +47,6 @@
                             <th scope="col">Nombre</th>
                             <th scope="col">Correo</th>
                             <th scope="col">Rol</th>
-                            <th scope="col">Estado</th>
                             <th scope="col">Registrado</th>
                             <th scope="col" class="text-center"><i class="bi bi-caret-down-fill"></i></th>
                         </tr>
@@ -71,7 +67,7 @@
         </div>
 
         <!-- Formulario de usuarios -->
-        <div class="offcanvas form-new-user offcanvas-end" data-bs-backdrop="static" tabindex="-1" id="offcanvasNewUser" aria-labelledby="offcanvasNewUserLabel">
+        <div class="offcanvas form-basic offcanvas-end" data-bs-backdrop="static" tabindex="-1" id="offcanvasNewUser" aria-labelledby="offcanvasNewUserLabel">
             <div class="offcanvas-header d-flex justify-content-between">
                 <button type="button" class="btn close" id="close" data-bs-dismiss="offcanvas" aria-label="close"><i class="bi bi-x-lg"></i></button>
                 <p class="offcanvas-title" id="offcanvasNewUserLabel">Usuarios</p>
@@ -96,15 +92,15 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            <label for="firstSurname" class="form-label">Primer apellido*</label>
+                            <label for="firstSurname" class="form-label">Primer apellido</label>
                             <div class="input-group flex-nowrap">
-                                <input type="text" class="form-control focus-ring" id="firstSurname" placeholder="Nombre del usuario" required />
+                                <input type="text" class="form-control focus-ring" id="firstSurname" placeholder="Nombre del usuario" />
                             </div>
                         </div>
                         <div class="col">
-                            <label for="secondSurname" class="form-label">Segundo apellido*</label>
+                            <label for="secondSurname" class="form-label">Segundo apellido</label>
                             <div class="input-group flex-nowrap">
-                                <input type="text" class="form-control focus-ring" id="secondSurname" placeholder="Nombre del usuario" required />
+                                <input type="text" class="form-control focus-ring" id="secondSurname" placeholder="Nombre del usuario" />
                             </div>
                         </div>
                     </div>
@@ -120,9 +116,9 @@
                         <div class="col">
                             <label for="role" class="form-label">Rol*</label>
                             <select class="form-select focus-ring" id="role" aria-label="Default select example" required>
-                                <option value="A" selected>Administrador</option>
-                                <option value="U">Usuario</option>
-                                <option value="I">Invitado</option>
+                                <option value="administrador" selected>Administrador</option>
+                                <option value="usuario">Usuario</option>
+                                <option value="invitado">Invitado</option>
                             </select>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 import { alertConfirm, alertLoading, alertMessage, alertToast } from "./alerts.js";
 import { addPlaceholder, removePlaceholder } from "./tables.js";
-import {deleteApi, getApi, patchApi, postApi, putApi} from "./api.js";
+import {deleteApi, getApi, postApi, putApi} from "./api.js";
 import {token, currentSession} from "./dashboard.js";
 
 let searchInput = null;
@@ -35,9 +35,28 @@ let nextBtn = null;
 let endBtn = null;
 
 let column = "usuario";
-let order = "ASC";
+let order = "asc";
 let edit = false;
 let page = 1;
+let registers = null;
+let selectedUserId = null;
+
+const USERS_LIMIT = 10;
+let activeSearch = "";
+let lastQueryKey = "";
+let activeUsersRequestId = 0;
+
+const formatDateDDMMAAAA = (isoDate) => {
+    if (!isoDate) return "";
+    const date = new Date(isoDate);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear());
+
+    return `${day}/${month}/${year}`;
+};
 
 const disabledEdit = (disabled) => {
     editBtn.disabled = !disabled;
@@ -50,6 +69,16 @@ const disabledEdit = (disabled) => {
     saveBtn.disabled = disabled;
 };
 
+const normalizeSearch = (value) => (value ?? "").trim();
+
+const buildUsersQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
+
+const refreshUsers = ({ currentPage = page, search = activeSearch, force = false } = {}) => {
+    page = currentPage;
+    activeSearch = normalizeSearch(search);
+    return getUsers(page, USERS_LIMIT, activeSearch, force);
+};
+
 export const actionsUser = () => {
     const actionButtons = document.querySelectorAll(".dropdown-item");
     const checkboxes = document.querySelectorAll(".select-checkbox");
@@ -57,30 +86,32 @@ export const actionsUser = () => {
     actionButtons.forEach((button) => {
         if (button.dataset.action === "consult") {
             const tr = button.closest("tr");
-            const userName = tr.children[1].textContent;
+            const userId = tr.dataset.userId;
 
             button.addEventListener("click", async () => {
                 disabledEdit(true);
                 alertLoading("Cargando usuario", "Por favor, no cierre ni actualice el navegador mientras se cargan los cambios.");
 
                 try {
-                    const response = await getApi(`users/${userName}`, token);
+                    const response = await getApi(`users/${userId}`, token);
 
-                    if (response) {
-                        user.value = response.usuario;
-                        name.value = response.nombre;
-                        firstSurname.value = response.primer_apellido;
-                        secondSurname.value = response.segundo_apellido;
-                        email.value = response.correo;
-                        role.value = response.rol;
+                    if (response.success && response.data) {
+                        const userData = response.data;
+                        selectedUserId = userData._id;
+
+                        user.value = userData.usuario;
+                        name.value = userData.nombre;
+                        firstSurname.value = userData.primer_apellido;
+                        secondSurname.value = userData.segundo_apellido;
+                        email.value = userData.correo;
+                        role.value = userData.rol;
 
                         newUserBtn.click();
                         alertToast("Usuario cargado correctamente", false, "success", "bottom-start");
                         disabledEdit(true);
                     } else {
                         alertMessage(response.message, response.error, "error", 5000).finally(() => {
-                            if (searchInput.value) searchUsers(searchInput.value);
-                            else getUsers(column, order);
+                            refreshUsers({ currentPage: page, search: searchInput.value, force: true });
                         });
                     }
                 } catch (error) {
@@ -90,34 +121,28 @@ export const actionsUser = () => {
             });
         } else if (button.dataset.action === "delete") {
             const tr = button.closest("tr");
-            const userName = tr.children[1].textContent;
+            const userId = tr.dataset.userId;
+            const userName = tr.dataset.userName ?? tr.children[1].textContent;
 
             button.addEventListener("click", async () => {
                 if (await alertConfirm("Eliminar usuario", `¿Está seguro de que desea eliminar al usuario ${userName}?`, "warning", true)) {
                     alertLoading("Eliminando usuario", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
 
-                    if (userName === currentSession.usuario) {
+                    if (userId === currentSession._id) {
                         alertToast("No puedes eliminar tu propio usuario", false, "error", "bottom-end");
                         return;
                     }
 
                     try {
-                        const response = await deleteApi(`users/${userName}`, token);
+                        const response = await deleteApi(`users/${userId}`, token);
 
                         if (response.success) {
                             alertToast(response.message, false, "success", "bottom-end").finally(() => {
-                                if (searchInput.value) {
-                                    page = 1;
-                                    searchUsers(searchInput.value, 0);
-                                } else {
-                                    page = 1;
-                                    getUsers(column, order, 0);
-                                }
+                                refreshUsers({ currentPage: 1, search: searchInput.value, force: true });
                             });
                         } else {
                             alertMessage(response.message, response.error, "error", 5000).finally(() => {
-                                if (searchInput.value) searchUsers(searchInput.value, (page - 1) * 10);
-                                else getUsers(column, order, (page - 1) * 10);
+                                refreshUsers({ currentPage: page, search: searchInput.value, force: true });
                             });
                         }
                     } catch (error) {
@@ -137,14 +162,22 @@ export const actionsUser = () => {
         });
     });
 
-    deleteBtn.addEventListener("click", async () => {
-        const selectedUsers = [...checkboxes].filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.closest("tr").children[1].textContent);
+    deleteBtn.onclick = async () => {
+        const selectedUsers = [...checkboxes]
+            .filter((checkbox) => checkbox.checked)
+            .map((checkbox) => {
+                const tr = checkbox.closest("tr");
+                return {
+                    id: tr.dataset.userId,
+                    name: tr.dataset.userName ?? tr.children[1].textContent,
+                };
+            });
 
         if (selectedUsers.length === 0) return;
-        if (await alertConfirm("Eliminar usuario", `¿Está seguro de que desea eliminar a los usuarios ${selectedUsers.join(", ")}?`, "warning", true)) {
+        if (await alertConfirm("Eliminar usuario", `¿Está seguro de que desea eliminar a los usuarios ${selectedUsers.map((u) => u.name).join(", ")}?`, "warning", true)) {
             alertLoading("Eliminando usuario", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
 
-            if (selectedUsers.includes(currentSession.usuario)) {
+            if (selectedUsers.some((selectedUser) => selectedUser.id === currentSession._id)) {
                 alertToast("No puedes eliminar tu propio usuario", false, "error", "bottom-end");
                 return;
             }
@@ -152,8 +185,8 @@ export const actionsUser = () => {
             let usuariosEliminados = 0;
             let usuariosNoEliminados = 0;
             try {
-                for (const userName of selectedUsers) {
-                    const response = await deleteApi(`users/${userName}`, token);
+                for (const selectedUser of selectedUsers) {
+                    const response = await deleteApi(`users/${selectedUser.id}`, token);
 
                     if (response.success) usuariosEliminados++;
                     else {
@@ -162,29 +195,27 @@ export const actionsUser = () => {
                     }
                 }
                 alertToast(`Usuarios eliminados: ${usuariosEliminados}, Usuarios no eliminados: ${usuariosNoEliminados}`, false, "success", "bottom-end");
-                if (searchInput.value) {
-                    page = 1;
-                    searchUsers(searchInput.value, 0);
-                } else {
-                    page = 1;
-                    getUsers(column, order, 0);
-                }
+                refreshUsers({ currentPage: 1, search: searchInput.value, force: true });
             } catch (error) {
                 console.error(error);
                 alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
             }
         }
-    });
+    };
 };
 
-export const handleSearchInput = () => {
-    page = 1;
-    if (searchInput.value) searchUsers(searchInput.value);
-    else {
-        getUsers(column, order);
-        filterBtn.classList.remove("d-none");
-        orderBtn.classList.remove("d-none");
+export const handleSearchInput = (event) => {
+    const searchValue = normalizeSearch(searchInput.value);
+
+    if (event.type === "input") {
+        if (searchValue !== "") return;
+        refreshUsers({ currentPage: 1, search: "" });
+        return;
     }
+
+    if (event.type === "keydown" && event.key !== "Enter" && event.key !== "NumpadEnter") return;
+
+    refreshUsers({ currentPage: 1, search: searchValue });
 };
 
 export const readyUsers = (searchBar) => {
@@ -193,7 +224,7 @@ export const readyUsers = (searchBar) => {
     deleteBtn = document.getElementById("delete");
     orderBtn = document.getElementById("order");
     filterBtn = document.getElementById("filter");
-    filter = document.querySelectorAll(".dropdown-item");
+    filter = document.querySelectorAll(".dropdown-item[data-filter]");
     newUserBtn = document.getElementById("newUserBtn");
 
     formNewUser = document.getElementById("formNewUser");
@@ -219,24 +250,25 @@ export const readyUsers = (searchBar) => {
     nextBtn = document.getElementById("next");
     endBtn = document.getElementById("end");
 
+    searchInput.addEventListener("keydown", handleSearchInput);
     searchInput.addEventListener("input", handleSearchInput);
 
     orderBtn.addEventListener("click", () => {
-        order = order === "ASC" ? "DESC" : "ASC";
-        orderBtn.innerHTML = `<i class="bi ${order === "ASC" ? "bi-arrow-up" : "bi-arrow-down"}"></i> ${order === "ASC" ? "Ascendente" : "Descendente"}`;
-        getUsers(column, order);
+        order = order === "asc" ? "desc" : "asc";
+        orderBtn.innerHTML = `<i class="bi ${order === "asc" ? "bi-arrow-up" : "bi-arrow-down"}"></i> ${order === "asc" ? "Ascendente" : "Descendente"}`;
+        refreshUsers({ currentPage: 1, search: searchInput.value });
     });
 
     filter.forEach((button) => {
         button.addEventListener("click", () => {
             column = button.dataset.filter;
             filterBtn.innerHTML = `<i class="bi bi-filter"></i> ${button.textContent}`;
-            getUsers(column, order);
+            refreshUsers({ currentPage: 1, search: searchInput.value });
         });
     });
 
     editBtn.addEventListener("click", () => {
-        if (user.value === currentSession.usuario) {
+        if (selectedUserId === currentSession._id) {
             alertToast("No puedes editar tu propio usuario", false, "error", "bottom-start");
             return;
         }
@@ -265,7 +297,17 @@ export const readyUsers = (searchBar) => {
         alertLoading("Guardando usuario", "Por favor, no cierre ni actualice el navegador mientras se guardan los cambios.");
         try {
             let response = null;
-            if (edit) response = await patchApi("users/role", { usuario: user.value, rol: role.value }, token);
+            if (edit) {
+                if (!selectedUserId) {
+                    alertMessage("Usuario inválido", "No se encontró el identificador del usuario a editar", "error", 5000);
+                    disabledEdit(false);
+                    cancelBtn.disabled = false;
+                    closeBtn.disabled = false;
+                    role.disabled = false;
+                    return;
+                }
+                response = await putApi(`users/${selectedUserId}`, { rol: role.value }, token);
+            }
             else response = await postApi("users", data, token);
 
             if (response.success) {
@@ -275,7 +317,8 @@ export const readyUsers = (searchBar) => {
                     cancelBtn.disabled = false;
                     closeBtn.click();
                     searchInput.value = "";
-                    getUsers(column, order);
+                    selectedUserId = null;
+                    refreshUsers({ currentPage: 1, search: "", force: true });
                 });
             } else {
                 alertMessage(response.message, response.error, "error", 5000).finally(() => {
@@ -295,60 +338,77 @@ export const readyUsers = (searchBar) => {
         formNewUser.reset();
         disabledEdit(false);
         edit = false;
+        selectedUserId = null;
     });
 
     closeBtn.addEventListener("click", () => {
         formNewUser.reset();
         disabledEdit(false);
         edit = false;
+        selectedUserId = null;
     });
 
     startBtn.addEventListener("click", () => {
-        page = 1;
-        if (searchInput.value) searchUsers(searchInput.value);
-        else getUsers(column, order);
+        refreshUsers({ currentPage: 1, search: searchInput.value });
     });
     prevBtn.addEventListener("click", () => {
-        if (page > 1) page--;
-        if (searchInput.value) searchUsers(searchInput.value, (page - 1) * 10);
-        else getUsers(column, order, (page - 1) * 10);
+        const nextPage = page > 1 ? page - 1 : 1;
+        refreshUsers({ currentPage: nextPage, search: searchInput.value });
     });
     nextBtn.addEventListener("click", () => {
-        if (page < totalPagesNum.textContent) page++;
-        if (searchInput.value) searchUsers(searchInput.value, (page - 1) * 10);
-        else getUsers(column, order, (page - 1) * 10);
+        const totalPages = Number(totalPagesNum.textContent) || 1;
+        const nextPage = page < totalPages ? page + 1 : totalPages;
+        refreshUsers({ currentPage: nextPage, search: searchInput.value });
     });
     endBtn.addEventListener("click", () => {
-        page = totalPagesNum.textContent;
-        if (searchInput.value) searchUsers(searchInput.value, (page - 1) * 10);
-        else getUsers(column, order, (page - 1) * 10);
+        const totalPages = Number(totalPagesNum.textContent) || 1;
+        refreshUsers({ currentPage: totalPages, search: searchInput.value });
     });
 
-    getUsers(column, order);
+    refreshUsers({ currentPage: page, search: "", force: true });
 };
 
-export async function getUsers(_column, _order, _offset = 0) {
+export async function getUsers(currentPage = 1, limit = USERS_LIMIT, search = "", force = false) {
+    const normalizedSearch = normalizeSearch(search);
+    const queryKey = buildUsersQueryKey(currentPage, limit, normalizedSearch);
+
+    if (!force && queryKey === lastQueryKey) return;
+
+    lastQueryKey = queryKey;
+    const requestId = ++activeUsersRequestId;
     addPlaceholder();
 
-    try {
-        const response = await postApi("users/filter", { columna_orden: _column, orden: _order, limite: 10, desplazamiento: _offset }, token);
+    const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: String(limit),
+        search: normalizedSearch,
+        sortBy: column,
+        sortOrder: order,
+    });
 
-        if (response.length > 0) {
+    try {
+        const response = await getApi(`users?${params.toString()}`, token);
+
+        if (requestId !== activeUsersRequestId) return;
+
+        if (response.success) {
+            page = response.pagination?.page ?? currentPage;
             const usersTable = document.getElementById("tbody");
             usersTable.innerHTML = "";
 
-            response.forEach((userResponse) => {
+            response.data.forEach((userResponse) => {
                 const tr = document.createElement("tr");
+                tr.dataset.userId = userResponse._id;
+                tr.dataset.userName = userResponse.usuario;
                 tr.innerHTML = `
                     <th scope="row" class="text-center">
                         <input type="checkbox" class="select-checkbox" />
                     </th>
                     <td>${userResponse.usuario}</td>
-                    <td>${userResponse.nombre_completo}</td>
+                    <td>${[userResponse.nombre, userResponse.primer_apellido, userResponse.segundo_apellido].filter(Boolean).join(" ")}</td>
                     <td>${userResponse.correo}</td>
-                    <td>${userResponse.rol_usuario}</td>
-                    <td>${userResponse.en_linea ? "En linea" : "Desconectado"}</td>
-                    <td>${userResponse.fecha_registro}</td>
+                    <td>${userResponse.rol}</td>
+                    <td>${formatDateDDMMAAAA(userResponse.createdAt ?? userResponse.fecha_registro)}</td>
                     <td class="text-center">
                         <button class="btn options" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-three-dots-vertical"></i>
@@ -365,91 +425,17 @@ export async function getUsers(_column, _order, _offset = 0) {
                 `;
                 usersTable.appendChild(tr);
             });
-        }
 
-        rowSelectNum.textContent = 0;
-        rowsNum.textContent = response.length;
-        currentPageNum.textContent = page;
-        totalPagesNum.textContent = Math.ceil(response[0].total / 10);
-        actionsUser();
-
-        if (page === 1) {
-            startBtn.disabled = true;
-            prevBtn.disabled = true;
-        } else {
-            startBtn.disabled = false;
-            prevBtn.disabled = false;
-        }
-        if (page >= totalPagesNum.textContent) {
-            page = totalPagesNum.textContent;
-            nextBtn.disabled = true;
-            endBtn.disabled = true;
-        } else {
-            nextBtn.disabled = false;
-            endBtn.disabled = false;
-        }
-
-        removePlaceholder();
-    } catch (error) {
-        console.error(error);
-        alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
-    }
-}
-
-export async function searchUsers(_search, _offset = 0) {
-    addPlaceholder();
-
-    try {
-        const response = await postApi("users/search", { busqueda: _search, limite: 10, desplazamiento: _offset }, token);
-        const usersTable = document.getElementById("tbody");
-
-        if (response.length > 0) {
-            usersTable.innerHTML = "";
-
-            response.forEach((userResponse) => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <th scope="row" class="text-center">
-                        <input type="checkbox" class="select-checkbox" />
-                    </th>
-                    <td>${userResponse.usuario}</td>
-                    <td>${userResponse.nombre_completo}</td>
-                    <td>${userResponse.correo}</td>
-                    <td>${userResponse.rol_usuario}</td>
-                    <td>${userResponse.en_linea ? "En linea" : "Desconectado"}</td>
-                    <td>${userResponse.fecha_registro}</td>
-                     <td class="text-center">
-                        <button class="btn options" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <button class="dropdown-item" data-action="consult"><i class="bi bi-pencil-square"></i> Ver usuario</button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item" data-action="delete"><i class="bi bi-trash3"></i> Eliminar usuario</button>
-                            </li>
-                        </ul>
-                    </td>
-                `;
-                usersTable.appendChild(tr);
-            });
+            registers = response.data;
 
             rowSelectNum.textContent = 0;
-            rowsNum.textContent = response.length;
+            rowsNum.textContent = response.pagination.total;
             currentPageNum.textContent = page;
-            totalPagesNum.textContent = Math.ceil(response[0].total / 10);
+            totalPagesNum.textContent = response.pagination.totalPages;
             actionsUser();
         } else {
-            usersTable.innerHTML = "";
-            rowSelectNum.textContent = 0;
-            rowsNum.textContent = response.length;
-            currentPageNum.textContent = 1;
-            totalPagesNum.textContent = 1;
+            alertMessage(response.message, response.error, "error", 5000);
         }
-
-        filterBtn.classList.add("d-none");
-        orderBtn.classList.add("d-none");
 
         if (page === 1) {
             startBtn.disabled = true;
@@ -458,8 +444,8 @@ export async function searchUsers(_search, _offset = 0) {
             startBtn.disabled = false;
             prevBtn.disabled = false;
         }
-        if (page >= totalPagesNum.textContent) {
-            page = totalPagesNum.textContent;
+        if (page >= Number(totalPagesNum.textContent)) {
+            page = Number(totalPagesNum.textContent);
             nextBtn.disabled = true;
             endBtn.disabled = true;
         } else {
@@ -467,9 +453,11 @@ export async function searchUsers(_search, _offset = 0) {
             endBtn.disabled = false;
         }
 
-        removePlaceholder();
     } catch (error) {
+        if (requestId !== activeUsersRequestId) return;
         console.error(error);
         alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+    } finally {
+        if (requestId === activeUsersRequestId) removePlaceholder();
     }
 }

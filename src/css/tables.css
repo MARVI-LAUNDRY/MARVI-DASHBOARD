@@ -63,6 +63,17 @@
     border-radius: 4px;
 }
 
+.product-image-placeholder {
+    background: var(--background-content);
+    color: var(--text);
+    width: 64px;
+    height: 64px;
+}
+
+.product-image-placeholder-icon {
+    font-size: 1.75rem;
+}
+
 .options {
     padding: 0;
 }

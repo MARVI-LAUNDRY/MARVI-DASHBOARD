@@ -9,15 +9,14 @@ let deleteBtn = null;
 let orderBtn = null;
 let filterBtn = null;
 let filter = null;
-let newClientBtn = null;
+let newProviderBtn = null;
 
-let formNewClient = null;
+let formNewProvider = null;
 let code = null;
 let name = null;
-let firstSurname = null;
-let secondSurname = null;
 let email = null;
 let phone = null;
+let address = null;
 
 let editBtn = null;
 let saveBtn = null;
@@ -38,21 +37,26 @@ let column = "codigo";
 let order = "asc";
 let edit = false;
 let page = 1;
-let selectedClientId = null;
+let selectedProviderId = null;
 
-const CLIENTS_LIMIT = 10;
+const PROVIDERS_LIMIT = 10;
 let activeSearch = "";
-let activeClientsRequestId = 0;
+let activeProvidersRequestId = 0;
 let lastQueryKey = "";
 
 const normalizeSearch = (value) => (value ?? "").trim();
+const buildProvidersQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
+const EMPTY_REFERENCE_TEXT = "Sin informacion";
+
+const getDisplayOrFallback = (value) => {
+    const normalized = `${value ?? ""}`.trim();
+    return normalized || EMPTY_REFERENCE_TEXT;
+};
 
 const formatDateDDMMAAAA = (value) => {
     if (!value) return "";
-    const rawDate = /^\d{2}\/\d{2}\/\d{4}$/.test(value) ? value.split("/").reverse().join("-") : value;
-    const date = new Date(rawDate);
-
-    if (Number.isNaN(date.getTime())) return value;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
 
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -61,110 +65,99 @@ const formatDateDDMMAAAA = (value) => {
     return `${day}/${month}/${year}`;
 };
 
-const getClientCode = (clientResponse) => clientResponse.codigo ?? clientResponse.cliente ?? "";
-
-const getClientFullName = (clientResponse) => {
-    if (clientResponse.nombre_completo) return clientResponse.nombre_completo;
-    return [clientResponse.nombre, clientResponse.primer_apellido, clientResponse.segundo_apellido].filter(Boolean).join(" ");
-};
-
-const buildClientsQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
-
 const disabledEdit = (disabled) => {
     editBtn.disabled = !disabled;
     code.disabled = disabled;
     name.disabled = disabled;
-    firstSurname.disabled = disabled;
-    secondSurname.disabled = disabled;
     email.disabled = disabled;
     phone.disabled = disabled;
+    address.disabled = disabled;
     saveBtn.disabled = disabled;
 };
 
-const resetClientFormState = () => {
-    formNewClient.reset();
+const resetProviderFormState = () => {
+    formNewProvider.reset();
     disabledEdit(false);
     edit = false;
-    selectedClientId = null;
+    selectedProviderId = null;
 };
 
-const buildClientPayload = () => ({
+const buildProviderPayload = () => ({
     codigo: code.value,
     nombre: name.value,
-    primer_apellido: firstSurname.value,
-    segundo_apellido: secondSurname.value,
     correo: email.value,
     telefono: phone.value,
+    direccion: address.value,
 });
 
-const refreshClients = ({ currentPage = page, search = activeSearch, force = false } = {}) => {
+const refreshProviders = ({ currentPage = page, search = activeSearch, force = false } = {}) => {
     page = currentPage;
     activeSearch = normalizeSearch(search);
-    return getClients(page, CLIENTS_LIMIT, activeSearch, force);
+    return getProviders(page, PROVIDERS_LIMIT, activeSearch, force);
 };
 
-export const actionsClient = () => {
+export const actionsProvider = () => {
     const actionButtons = document.querySelectorAll(".dropdown-item[data-action]");
     const checkboxes = document.querySelectorAll(".select-checkbox");
 
     actionButtons.forEach((button) => {
         if (button.dataset.action === "consult") {
             const tr = button.closest("tr");
-            const clientId = tr.dataset.clientId;
+            const providerId = tr.dataset.providerId;
 
             button.addEventListener("click", async () => {
                 disabledEdit(true);
-                alertLoading("Cargando cliente", "Por favor, no cierre ni actualice el navegador mientras se cargan los cambios.");
+                alertLoading("Cargando proveedor", "Por favor, no cierre ni actualice el navegador mientras se cargan los cambios.");
 
                 try {
-                    const response = await getApi(`clients/${clientId}`, token);
-                    const clientData = response?.success ? response.data : null;
+                    const response = await getApi(`suppliers/${providerId}`, token);
+                    const providerData = response?.success ? response.data : null;
 
-                    if (clientData) {
-                        selectedClientId = clientData._id ?? clientData.id_cliente ?? clientData.codigo ?? clientData.cliente ?? clientId;
+                    if (providerData) {
+                        selectedProviderId = providerData._id ?? providerId;
+                        code.value = providerData.codigo ?? "";
+                        name.value = providerData.nombre ?? "";
+                        email.value = providerData.correo ?? "";
+                        phone.value = providerData.telefono ?? "";
+                        address.value = providerData.direccion ?? "";
 
-                        code.value = clientData.codigo ?? clientData.cliente ?? "";
-                        name.value = clientData.nombre ?? "";
-                        firstSurname.value = clientData.primer_apellido ?? "";
-                        secondSurname.value = clientData.segundo_apellido ?? "";
-                        email.value = clientData.correo ?? "";
-                        phone.value = clientData.telefono ?? "";
-
-                        newClientBtn.click();
-                        alertToast("Cliente cargado correctamente", false, "success", "bottom-start");
+                        newProviderBtn.click();
+                        alertToast("Proveedor cargado correctamente", false, "success", "bottom-start");
                         disabledEdit(true);
                     } else {
-                        alertMessage(response?.message ?? "No se pudo cargar el cliente", response?.error ?? "", "error", 5000)
-                            .finally(() => refreshClients({ currentPage: page, search: searchInput.value, force: true }));
+                        alertMessage(response?.message ?? "No se pudo cargar el proveedor", response?.error ?? "", "error", 5000)
+                            .finally(() => refreshProviders({ currentPage: page, search: searchInput.value, force: true }));
                     }
                 } catch (error) {
                     console.error(error);
-                    alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+                    alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
                 }
             });
-        } else if (button.dataset.action === "delete") {
+        }
+
+        if (button.dataset.action === "delete") {
             const tr = button.closest("tr");
-            const clientId = tr.dataset.clientId;
-            const clientName = tr.dataset.clientName ?? tr.children[2].textContent;
+            const providerId = tr.dataset.providerId;
+            const providerName = tr.dataset.providerName ?? tr.children[2].textContent;
 
             button.addEventListener("click", async () => {
-                if (await alertConfirm("Eliminar cliente", `¿Está seguro de que desea eliminar al cliente ${clientName}?`, "warning", true)) {
-                    alertLoading("Eliminando cliente", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
+                if (await alertConfirm("Eliminar proveedor", `¿Esta seguro de que desea eliminar al proveedor ${providerName}?`, "warning", true)) {
+                    alertLoading("Eliminando proveedor", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
 
                     try {
-                        const response = await deleteApi(`clients/${clientId}`, token);
+                        const response = await deleteApi(`suppliers/${providerId}`, token);
 
                         if (response.success) {
                             alertToast(response.message, false, "success", "bottom-end").finally(() => {
-                                refreshClients({ currentPage: 1, search: searchInput.value, force: true });
+                                refreshProviders({ currentPage: 1, search: searchInput.value, force: true });
                             });
                         } else {
                             alertMessage(response.message, response.error, "error", 5000)
-                                .finally(() => refreshClients({ currentPage: page, search: searchInput.value, force: true }));
+                                .finally(() => refreshProviders({ currentPage: page, search: searchInput.value, force: true }));
                         }
                     } catch (error) {
                         console.error(error);
-                        alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+                        alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
                     }
                 }
             });
@@ -180,38 +173,40 @@ export const actionsClient = () => {
     });
 
     deleteBtn.onclick = async () => {
-        const selectedClients = [...checkboxes]
+        const selectedProviders = [...checkboxes]
             .filter((checkbox) => checkbox.checked)
             .map((checkbox) => {
                 const tr = checkbox.closest("tr");
                 return {
-                    id: tr.dataset.clientId,
-                    name: tr.dataset.clientName ?? tr.children[2].textContent,
+                    id: tr.dataset.providerId,
+                    name: tr.dataset.providerName ?? tr.children[2].textContent,
                 };
             });
 
-        if (selectedClients.length === 0) return;
-        if (await alertConfirm("Eliminar cliente", `¿Está seguro de que desea eliminar a los clientes ${selectedClients.map((client) => client.name).join(", ")}?`, "warning", true)) {
-            alertLoading("Eliminando cliente", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
+        if (selectedProviders.length === 0) return;
 
-            let clientesEliminados = 0;
-            let clientesNoEliminados = 0;
+        if (await alertConfirm("Eliminar proveedor", `¿Esta seguro de que desea eliminar a los proveedores ${selectedProviders.map((provider) => provider.name).join(", ")}?`, "warning", true)) {
+            alertLoading("Eliminando proveedor", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
+
+            let providersDeleted = 0;
+            let providersNotDeleted = 0;
+
             try {
-                for (const selectedClient of selectedClients) {
-                    const response = await deleteApi(`clients/${selectedClient.id}`, token);
+                for (const selectedProvider of selectedProviders) {
+                    const response = await deleteApi(`suppliers/${selectedProvider.id}`, token);
 
-                    if (response.success) clientesEliminados++;
+                    if (response.success) providersDeleted++;
                     else {
                         alertMessage(response.message, response.error, "error", 5000);
-                        clientesNoEliminados++;
+                        providersNotDeleted++;
                     }
                 }
 
-                alertToast(`Clientes eliminados: ${clientesEliminados}, Clientes no eliminados: ${clientesNoEliminados}`, false, "success", "bottom-end");
-                refreshClients({ currentPage: 1, search: searchInput.value, force: true });
+                alertToast(`Proveedores eliminados: ${providersDeleted}, Proveedores no eliminados: ${providersNotDeleted}`, false, "success", "bottom-end");
+                refreshProviders({ currentPage: 1, search: searchInput.value, force: true });
             } catch (error) {
                 console.error(error);
-                alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+                alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
             }
         }
     };
@@ -222,31 +217,30 @@ export const handleSearchInput = (event) => {
 
     if (event.type === "input") {
         if (searchValue !== "") return;
-        refreshClients({ currentPage: 1, search: "" });
+        refreshProviders({ currentPage: 1, search: "" });
         return;
     }
 
     if (event.type === "keydown" && event.key !== "Enter" && event.key !== "NumpadEnter") return;
 
-    refreshClients({ currentPage: 1, search: searchValue });
+    refreshProviders({ currentPage: 1, search: searchValue });
 };
 
-export const readyClients = (searchBar) => {
+export const readyProviders = (searchBar) => {
     searchInput = searchBar;
 
     deleteBtn = document.getElementById("delete");
     orderBtn = document.getElementById("order");
     filterBtn = document.getElementById("filter");
     filter = document.querySelectorAll(".dropdown-item[data-filter]");
-    newClientBtn = document.getElementById("newClientBtn");
+    newProviderBtn = document.getElementById("newProviderBtn");
 
-    formNewClient = document.getElementById("formNewClient");
+    formNewProvider = document.getElementById("formNewProvider");
     code = document.getElementById("code");
     name = document.getElementById("name");
-    firstSurname = document.getElementById("firstSurname");
-    secondSurname = document.getElementById("secondSurname");
     email = document.getElementById("email");
     phone = document.getElementById("phone");
+    address = document.getElementById("address");
 
     editBtn = document.getElementById("edit");
     saveBtn = document.getElementById("save");
@@ -269,55 +263,54 @@ export const readyClients = (searchBar) => {
     orderBtn.onclick = () => {
         order = order === "asc" ? "desc" : "asc";
         orderBtn.innerHTML = `<i class="bi ${order === "asc" ? "bi-arrow-up" : "bi-arrow-down"}"></i> ${order === "asc" ? "Ascendente" : "Descendente"}`;
-        refreshClients({ currentPage: 1, search: searchInput.value });
+        refreshProviders({ currentPage: 1, search: searchInput.value });
     };
 
     filter.forEach((button) => {
         button.onclick = () => {
             column = button.dataset.filter;
             filterBtn.innerHTML = `<i class="bi bi-filter"></i> ${button.textContent}`;
-            refreshClients({ currentPage: 1, search: searchInput.value });
+            refreshProviders({ currentPage: 1, search: searchInput.value });
         };
     });
 
     editBtn.onclick = () => {
-        alertToast("La edición del cliente está activa", false, "success", "bottom-start");
+        alertToast("La edicion del proveedor esta activa", false, "success", "bottom-start");
         editBtn.disabled = true;
         code.disabled = false;
         name.disabled = false;
-        firstSurname.disabled = false;
-        secondSurname.disabled = false;
         email.disabled = false;
         phone.disabled = false;
+        address.disabled = false;
         saveBtn.disabled = false;
         edit = true;
     };
 
-    formNewClient.onsubmit = async (event) => {
+    formNewProvider.onsubmit = async (event) => {
         event.preventDefault();
         disabledEdit(true);
         cancelBtn.disabled = true;
         closeBtn.disabled = true;
 
-        const data = buildClientPayload();
+        const data = buildProviderPayload();
 
-        alertLoading("Guardando cliente", "Por favor, no cierre ni actualice el navegador mientras se guardan los cambios.");
+        alertLoading("Guardando proveedor", "Por favor, no cierre ni actualice el navegador mientras se guardan los cambios.");
 
         try {
             let response = null;
 
             if (edit) {
-                if (!selectedClientId) {
-                    alertMessage("Cliente inválido", "No se encontró el identificador del cliente a editar", "error", 5000);
+                if (!selectedProviderId) {
+                    alertMessage("Proveedor invalido", "No se encontro el identificador del proveedor a editar", "error", 5000);
                     disabledEdit(false);
                     cancelBtn.disabled = false;
                     closeBtn.disabled = false;
                     return;
                 }
 
-                response = await putApi(`clients/${selectedClientId}`, data, token);
+                response = await putApi(`suppliers/${selectedProviderId}`, data, token);
             } else {
-                response = await postApi("clients", data, token);
+                response = await postApi("suppliers", data, token);
             }
 
             if (response.success) {
@@ -327,8 +320,8 @@ export const readyClients = (searchBar) => {
                     cancelBtn.disabled = false;
                     closeBtn.click();
                     searchInput.value = "";
-                    resetClientFormState();
-                    refreshClients({ currentPage: 1, search: "", force: true });
+                    resetProviderFormState();
+                    refreshProviders({ currentPage: 1, search: "", force: true });
                 });
             } else {
                 alertMessage(response.message, response.error, "error", 5000).finally(() => {
@@ -339,7 +332,7 @@ export const readyClients = (searchBar) => {
             }
         } catch (error) {
             console.error(error);
-            alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+            alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
             disabledEdit(false);
             closeBtn.disabled = false;
             cancelBtn.disabled = false;
@@ -347,45 +340,45 @@ export const readyClients = (searchBar) => {
     };
 
     cancelBtn.onclick = () => {
-        resetClientFormState();
+        resetProviderFormState();
     };
 
     closeBtn.onclick = () => {
-        resetClientFormState();
+        resetProviderFormState();
     };
 
     startBtn.onclick = () => {
-        refreshClients({ currentPage: 1, search: searchInput.value });
+        refreshProviders({ currentPage: 1, search: searchInput.value });
     };
 
     prevBtn.onclick = () => {
         const nextPage = page > 1 ? page - 1 : 1;
-        refreshClients({ currentPage: nextPage, search: searchInput.value });
+        refreshProviders({ currentPage: nextPage, search: searchInput.value });
     };
 
     nextBtn.onclick = () => {
         const totalPages = Number(totalPagesNum.textContent) || 1;
         const nextPage = page < totalPages ? page + 1 : totalPages;
-        refreshClients({ currentPage: nextPage, search: searchInput.value });
+        refreshProviders({ currentPage: nextPage, search: searchInput.value });
     };
 
     endBtn.onclick = () => {
         const totalPages = Number(totalPagesNum.textContent) || 1;
-        refreshClients({ currentPage: totalPages, search: searchInput.value });
+        refreshProviders({ currentPage: totalPages, search: searchInput.value });
     };
 
-    resetClientFormState();
-    refreshClients({ currentPage: 1, search: "", force: true });
+    resetProviderFormState();
+    refreshProviders({ currentPage: 1, search: "", force: true });
 };
 
-export async function getClients(currentPage = 1, limit = CLIENTS_LIMIT, search = "", force = false) {
+export async function getProviders(currentPage = 1, limit = PROVIDERS_LIMIT, search = "", force = false) {
     const normalizedSearch = normalizeSearch(search);
-    const queryKey = buildClientsQueryKey(currentPage, limit, normalizedSearch);
+    const queryKey = buildProvidersQueryKey(currentPage, limit, normalizedSearch);
 
     if (!force && queryKey === lastQueryKey) return;
 
     lastQueryKey = queryKey;
-    const requestId = ++activeClientsRequestId;
+    const requestId = ++activeProvidersRequestId;
 
     addPlaceholder();
 
@@ -398,31 +391,30 @@ export async function getClients(currentPage = 1, limit = CLIENTS_LIMIT, search 
             sortOrder: order,
         });
 
-        const response = await getApi(`clients?${params.toString()}`, token);
+        const response = await getApi(`suppliers?${params.toString()}`, token);
 
-        if (requestId !== activeClientsRequestId && !force) return;
+        if (requestId !== activeProvidersRequestId) return;
 
         const list = response?.success ? (response.data ?? []) : [];
-        const clientsTable = document.getElementById("tbody");
-        clientsTable.innerHTML = "";
+        const providersTable = document.getElementById("tbody");
+        providersTable.innerHTML = "";
 
-        list.forEach((clientResponse) => {
-            const clientId = clientResponse._id ?? clientResponse.id_cliente ?? getClientCode(clientResponse);
-            const clientCode = getClientCode(clientResponse);
-            const clientName = getClientFullName(clientResponse);
-            const registerDate = formatDateDDMMAAAA(clientResponse.createdAt ?? clientResponse.fecha_registro);
+        list.forEach((providerResponse) => {
+            const providerId = providerResponse._id ?? providerResponse.codigo;
+            const registerDate = formatDateDDMMAAAA(providerResponse.createdAt ?? providerResponse.fecha_registro);
 
             const tr = document.createElement("tr");
-            tr.dataset.clientId = clientId;
-            tr.dataset.clientName = clientName;
+            tr.dataset.providerId = providerId;
+            tr.dataset.providerName = providerResponse.nombre ?? "";
             tr.innerHTML = `
                 <th scope="row" class="text-center">
                     <input type="checkbox" class="select-checkbox" />
                 </th>
-                <td>${clientCode}</td>
-                <td>${clientName}</td>
-                <td>${clientResponse.correo ?? ""}</td>
-                <td>${clientResponse.telefono ?? ""}</td>
+                <td>${providerResponse.codigo ?? ""}</td>
+                <td>${getDisplayOrFallback(providerResponse.nombre)}</td>
+                <td>${getDisplayOrFallback(providerResponse.correo)}</td>
+                <td>${getDisplayOrFallback(providerResponse.telefono)}</td>
+                <td>${getDisplayOrFallback(providerResponse.direccion)}</td>
                 <td>${registerDate}</td>
                 <td class="text-center">
                     <button class="btn options" type="button" data-bs-toggle="dropdown">
@@ -430,20 +422,20 @@ export async function getClients(currentPage = 1, limit = CLIENTS_LIMIT, search 
                     </button>
                     <ul class="dropdown-menu">
                         <li>
-                            <button class="dropdown-item" data-action="consult"><i class="bi bi-pencil-square"></i> Ver cliente</button>
+                            <button class="dropdown-item" data-action="consult"><i class="bi bi-pencil-square"></i> Ver proveedor</button>
                         </li>
                         <li>
-                            <button class="dropdown-item" data-action="delete"><i class="bi bi-trash3"></i> Eliminar cliente</button>
+                            <button class="dropdown-item" data-action="delete"><i class="bi bi-trash3"></i> Eliminar proveedor</button>
                         </li>
                     </ul>
                 </td>
             `;
 
-            clientsTable.appendChild(tr);
+            providersTable.appendChild(tr);
         });
 
         if (!response?.success) {
-            alertMessage(response?.message ?? "Error al obtener clientes", response?.error ?? "", "error", 5000);
+            alertMessage(response?.message ?? "Error al obtener proveedores", response?.error ?? "", "error", 5000);
         }
 
         const totalRegisters = Number(response?.pagination?.total ?? list.length);
@@ -461,11 +453,13 @@ export async function getClients(currentPage = 1, limit = CLIENTS_LIMIT, search 
         nextBtn.disabled = page >= totalPages;
         endBtn.disabled = page >= totalPages;
 
-        actionsClient();
+        actionsProvider();
     } catch (error) {
+        if (requestId !== activeProvidersRequestId) return;
         console.error(error);
-        alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+        alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
     } finally {
-        if (requestId === activeClientsRequestId || force) removePlaceholder();
+        if (requestId === activeProvidersRequestId) removePlaceholder();
     }
 }
+

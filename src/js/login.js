@@ -11,24 +11,99 @@ const eyePasswordButton = document.getElementById('eye-password-button')
 const loginSubmitButton = document.getElementById('login-submit-button');
 const recoveryButton = document.getElementById('recovery-button');
 
-const recoveryUsernameInput = document.getElementById('recovery-username');
+const recoverySection = document.querySelector('.recovery-form');
+const recoveryEmailInput = document.getElementById('recovery-email');
 const recoverySubmitButton = document.getElementById('recovery-submit-button');
-const loginButton = document.getElementById('login-button');
+const recoveryBackButton = document.getElementById('recovery-back-button');
 
-let hash = window.location.hash || '#login';
+const resetSection = document.querySelector('.reset-form');
+const resetCodeInput = document.getElementById('reset-code');
+const resetPasswordInput = document.getElementById('reset-password');
+const resetSubmitButton = document.getElementById('reset-submit-button');
+const resetBackButton = document.getElementById('reset-back-button');
 
-const scrollPage = () => {
-    hash = window.location.hash || '#login';
-    window.location.hash = hash;
-    nav.classList.add('hide');
-    footer.classList.add('hide');
-    window.scrollTo({
-        left: hash === '#recovery' ? window.innerWidth * 2 : 0, behavior: 'smooth'
+const loginControls = [usernameInput, passwordInput, loginSubmitButton];
+const recoveryControls = [recoveryEmailInput, recoverySubmitButton, recoveryBackButton];
+const resetControls = [resetCodeInput, resetPasswordInput, resetSubmitButton, resetBackButton];
+
+const clearInputs = () => {
+    usernameInput.value = '';
+    passwordInput.value = '';
+    recoveryEmailInput.value = '';
+    resetCodeInput.value = '';
+    resetPasswordInput.value = '';
+};
+
+const setDisabled = (controls, disabled) => {
+    controls.forEach((control) => {
+        control.disabled = disabled;
     });
 };
 
-window.addEventListener('hashchange', () => {
+const setLoginMode = () => {
+    clearInputs();
+    setDisabled(loginControls, false);
+    setDisabled(recoveryControls, true);
+    setDisabled(resetControls, true);
+};
+
+const setRecoveryMode = () => {
+    clearInputs();
+    setDisabled(loginControls, true);
+    setDisabled(recoveryControls, false);
+    setDisabled(resetControls, true);
+};
+
+const setResetMode = () => {
+    clearInputs();
+    setDisabled(loginControls, true);
+    setDisabled(recoveryControls, true);
+    setDisabled(resetControls, false);
+};
+
+const validHashes = ['#login', '#recovery', '#reset'];
+let hash = validHashes.includes(window.location.hash) ? window.location.hash : '#login';
+let saveEmail;
+
+const scrollPage = () => {
+    nav.classList.add('hide');
+    footer.classList.add('hide');
+    window.scrollTo({
+        left: hash === '#recovery' || hash === '#reset' ? window.innerWidth * 2 : 0, behavior: 'smooth'
+    });
+};
+
+const syncStateFromHash = () => {
+    hash = validHashes.includes(window.location.hash) ? window.location.hash : '#login';
+
+    if (window.location.hash !== hash) {
+        window.location.hash = hash;
+        return;
+    }
+
+    if (hash === '#login') {
+        setLoginMode();
+        recoverySection.classList.remove('visually-hidden');
+        resetSection.classList.add('visually-hidden');
+    } else if (hash === '#recovery') {
+        setRecoveryMode();
+        recoverySection.classList.remove('visually-hidden');
+        resetSection.classList.add('visually-hidden');
+    } else {
+        setResetMode();
+        recoverySection.classList.add('visually-hidden');
+        resetSection.classList.remove('visually-hidden');
+    }
+
     scrollPage();
+};
+
+window.addEventListener('hashchange', () => {
+    syncStateFromHash();
+});
+
+window.addEventListener('pageshow', () => {
+    syncStateFromHash();
 });
 
 window.addEventListener('resize', () => {
@@ -46,11 +121,11 @@ eyePasswordButton.addEventListener('click', () => {
 });
 
 loginSubmitButton.addEventListener('click', async () => {
-    loginSubmitButton.disabled = true;
+    setDisabled([loginSubmitButton], true);
     if (usernameInput.value === '') {
         alertMessage('Faltan campos', 'Por favor completa todos los campos', 'info', 1500).then(() => {
             window.location.hash = '#login';
-            loginSubmitButton.disabled = false;
+            setDisabled([loginSubmitButton], false);
         });
         return;
     }
@@ -58,67 +133,90 @@ loginSubmitButton.addEventListener('click', async () => {
     const data = {
         usuario: usernameInput.value, contrasena: passwordInput.value
     }
-    const response = await postApi('login/user', data);
+    const response = await postApi('users/login', data);
     if (response.success) {
         const expirationDate = new Date();
-        expirationDate.setTime(expirationDate.getTime() + (60 * 60 * 1000));
-        document.cookie = `token=${response.data.token}; expires=${expirationDate.toUTCString()}; path=/; Secure; SameSite=Strict`;
+        expirationDate.setTime(expirationDate.getTime() + (3 * 60 * 60 * 1000));
+        document.cookie = `token=${response.token}; expires=${expirationDate.toUTCString()}; path=/; Secure; SameSite=Strict`;
         alertMessage('!Bienvenido!', response.message, 'success', 1500).then(() => {
             window.location.href = 'src/html/dashboard.html';
         });
     } else {
         alertMessage(response.message, response.error, 'error', 3000).then(() => {
             window.location.hash = '#login';
-            loginSubmitButton.disabled = false;
+            setDisabled([loginSubmitButton], false);
         });
     }
 })
 
 recoveryButton.addEventListener('click', () => {
     window.location.hash = '#recovery';
-    recoveryUsernameInput.disabled = false;
-    recoverySubmitButton.disabled = false;
-    loginButton.disabled = false;
-    usernameInput.disabled = true;
-    passwordInput.disabled = true;
-    loginSubmitButton.disabled = true;
 });
 
 recoverySubmitButton.addEventListener('click', async () => {
-    recoverySubmitButton.disabled = true;
-    if (recoveryUsernameInput.value === '') {
+    setDisabled([recoverySubmitButton], true);
+    if (recoveryEmailInput.value === '') {
         alertMessage('Faltan campos', 'Por favor completa todos los campos', 'info', 1500).then(() => {
             window.location.hash = '#recovery';
-            recoverySubmitButton.disabled = false;
+            setDisabled([recoverySubmitButton], false);
         });
         return;
     }
     alertLoading('Enviando correo', 'Por favor, espera mientras se procesa tu solicitud.');
-    const response = await postApi(`login/user/reset/password/${recoveryUsernameInput.value}`);
+    const response = await postApi(`users/forgot-password/${recoveryEmailInput.value}`);
     if (response.success) {
+        saveEmail = recoveryEmailInput.value;
+        recoverySection.classList.add('visually-hidden');
+        resetSection.classList.remove('visually-hidden');
         alertMessage('¡Correo enviado!', response.message, 'success', 1500).then(() => {
-            window.location.hash = '#login';
+            window.location.hash = '#reset';
         });
     } else {
         alertMessage(response.message, response.error, 'error', 3000).then(() => {
             window.location.hash = '#recovery';
-            recoverySubmitButton.disabled = false;
+            setDisabled([recoverySubmitButton], false);
         })
     }
 });
 
-loginButton.addEventListener('click', () => {
+recoveryBackButton.addEventListener('click', () => {
     window.location.hash = '#login';
-    recoveryUsernameInput.disabled = true;
-    recoverySubmitButton.disabled = true;
-    loginButton.disabled = true;
-    usernameInput.disabled = false;
-    passwordInput.disabled = false;
-    loginSubmitButton.disabled = false;
+});
+
+resetSubmitButton.addEventListener('click', async () => {
+    setDisabled([resetSubmitButton], true);
+    if (resetCodeInput.value === '' || resetPasswordInput.value === '') {
+        alertMessage('Faltan campos', 'Por favor completa todos los campos', 'info', 1500).then(() => {
+            window.location.hash = '#recovery';
+            setDisabled([resetSubmitButton], false);
+        });
+        return;
+    }
+    alertLoading('Restableciendo contraseña', 'Por favor, espera mientras se procesa tu solicitud.');
+    const data = {
+        codigo: resetCodeInput.value, contrasena: resetPasswordInput.value
+    }
+    const response = await postApi(`users/reset-password/${saveEmail}`, data);
+    if (response.success) {
+        resetSection.classList.add('visually-hidden');
+        recoverySection.classList.remove('visually-hidden');
+        alertMessage('¡Contraseña restablecida!', response.message, 'success', 1500).then(() => {
+            window.location.hash = '#recovery';
+        });
+    } else {
+        alertMessage(response.message, response.error, 'error', 3000).then(() => {
+            window.location.hash = '#recovery';
+            setDisabled([resetSubmitButton], false);
+        })
+    }
+});
+
+resetBackButton.addEventListener('click', () => {
+    window.location.hash = '#login';
 });
 
 nav.addEventListener('animationend', (event) => {
-    if (hash === '#recovery') {
+    if (hash === '#recovery' || hash === '#reset') {
         nav.style.justifyContent = 'flex-end';
         footer.style.justifyContent = 'flex-end';
     } else {
@@ -130,7 +228,7 @@ nav.addEventListener('animationend', (event) => {
         footer.classList.add('show');
         usernameInput.value = '';
         passwordInput.value = '';
-        recoveryUsernameInput.value = '';
+        recoveryEmailInput.value = '';
     } else if (event.animationName === 'show') {
         nav.classList.remove('hide');
         footer.classList.remove('hide');
@@ -143,15 +241,18 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         if (hash === '#login') {
             loginSubmitButton.click();
-            loginSubmitButton.disabled = true;
+            setDisabled([loginSubmitButton], true);
         } else if (hash === '#recovery') {
             recoverySubmitButton.click();
-            recoverySubmitButton.disabled = true;
+            setDisabled([recoverySubmitButton], true);
+        } else if (hash === '#reset') {
+            resetSubmitButton.click();
+            setDisabled([resetSubmitButton], true);
         }
     }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    scrollPage();
+    syncStateFromHash();
     loadTheme();
 });

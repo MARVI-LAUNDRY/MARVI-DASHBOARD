@@ -9,15 +9,14 @@ let deleteBtn = null;
 let orderBtn = null;
 let filterBtn = null;
 let filter = null;
-let newProductBtn = null;
+let newServiceBtn = null;
 
-let formNewProduct = null;
+let formNewService = null;
 let code = null;
 let name = null;
 let description = null;
 let unitMeasure = null;
 let price = null;
-let stock = null;
 let image = null;
 let imagePreviewContainer = null;
 let imagePreview = null;
@@ -41,13 +40,13 @@ let column = "codigo";
 let order = "asc";
 let edit = false;
 let page = 1;
-let selectedProductId = null;
-let selectedProductImage = "";
+let selectedServiceId = null;
+let selectedServiceImage = "";
 let previewObjectUrl = null;
 
-const PRODUCTS_LIMIT = 10;
+const SERVICES_LIMIT = 10;
 let activeSearch = "";
-let activeProductsRequestId = 0;
+let activeServicesRequestId = 0;
 let lastQueryKey = "";
 
 const normalizeSearch = (value) => (value ?? "").trim();
@@ -72,17 +71,16 @@ const formatDateDDMMAAAA = (isoDate) => {
 
 const formatCurrency = (value) => `$${Number(value ?? 0).toFixed(2)}`;
 
-const getProductId = (productResponse) => productResponse._id ?? productResponse.id_producto ?? productResponse.codigo;
-const getProductStock = (productResponse) => productResponse.stock ?? productResponse.stokc ?? productResponse.cantidad ?? 0;
-const getProductImage = (productResponse) => {
-    const imageValue = productResponse.imagen ?? productResponse.imagen_url ?? "";
+const getServiceId = (serviceResponse) => serviceResponse._id ?? serviceResponse.id_servicio ?? serviceResponse.codigo;
+const getServiceImage = (serviceResponse) => {
+    const imageValue = serviceResponse.imagen ?? serviceResponse.imagen_url ?? "";
     return typeof imageValue === "string" ? imageValue.trim() : "";
 };
 
-const buildProductImagePlaceholder = () => "<div class='product-image-placeholder d-inline-flex align-items-center justify-content-center rounded'><i class='bi bi-image product-image-placeholder-icon' title='Sin imagen'></i></div>";
+const buildServiceImagePlaceholder = () => "<div class='product-image-placeholder d-inline-flex align-items-center justify-content-center rounded'><i class='bi bi-image product-image-placeholder-icon' title='Sin imagen'></i></div>";
 
-const buildProductImageCell = (imageUrl, productCode) => {
-    const placeholderContent = buildProductImagePlaceholder();
+const buildServiceImageCell = (imageUrl, serviceCode) => {
+    const placeholderContent = buildServiceImagePlaceholder();
 
     if (!imageUrl) {
         return `
@@ -94,12 +92,12 @@ const buildProductImageCell = (imageUrl, productCode) => {
 
     return `
         <td class="text-center">
-            <img class="product-table-image" src="${imageUrl}" alt="Producto ${productCode}" />
+            <img class="product-table-image" src="${imageUrl}" alt="Servicio ${serviceCode}" />
         </td>
     `;
 };
 
-const attachProductImageFallbacks = (tableElement) => {
+const attachServiceImageFallbacks = (tableElement) => {
     const imageElements = tableElement.querySelectorAll("img.product-table-image");
 
     imageElements.forEach((imageElement) => {
@@ -108,12 +106,12 @@ const attachProductImageFallbacks = (tableElement) => {
             if (!imageCell) return;
 
             imageCell.classList.add("text-center");
-            imageCell.innerHTML = buildProductImagePlaceholder();
+            imageCell.innerHTML = buildServiceImagePlaceholder();
         };
     });
 };
 
-const buildProductsQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
+const buildServicesQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
 
 const revokePreviewObjectUrl = () => {
     if (!previewObjectUrl) return;
@@ -147,21 +145,20 @@ const disabledEdit = (disabled) => {
     description.disabled = disabled;
     unitMeasure.disabled = disabled;
     price.disabled = disabled;
-    stock.disabled = disabled;
     image.disabled = disabled;
     saveBtn.disabled = disabled;
 };
 
-const resetProductFormState = () => {
-    formNewProduct.reset();
+const resetServiceFormState = () => {
+    formNewService.reset();
     disabledEdit(false);
     edit = false;
-    selectedProductId = null;
-    selectedProductImage = "";
+    selectedServiceId = null;
+    selectedServiceImage = "";
     clearImagePreview();
 };
 
-const buildProductPayload = () => {
+const buildServicePayload = () => {
     const data = new FormData();
 
     data.append("codigo", code.value);
@@ -169,89 +166,82 @@ const buildProductPayload = () => {
     data.append("descripcion", description.value);
     data.append("unidad_medida", unitMeasure.value);
     data.append("precio", price.value);
-    data.append("stock", stock.value);
-    data.append("stokc", stock.value);
 
     if (image.files.length > 0) data.append("imagen", image.files[0]);
 
     return data;
 };
 
-const refreshProducts = ({currentPage = page, search = activeSearch, force = false} = {}) => {
+const refreshServices = ({currentPage = page, search = activeSearch, force = false} = {}) => {
     page = currentPage;
     activeSearch = normalizeSearch(search);
-    return getProducts(page, PRODUCTS_LIMIT, activeSearch, force);
+    return getServices(page, SERVICES_LIMIT, activeSearch, force);
 };
 
-export const actionsProduct = () => {
+export const actionsService = () => {
     const actionButtons = document.querySelectorAll(".dropdown-item[data-action]");
     const checkboxes = document.querySelectorAll(".select-checkbox");
 
     actionButtons.forEach((button) => {
         if (button.dataset.action === "consult") {
             const tr = button.closest("tr");
-            const productId = tr.dataset.productId;
+            const serviceId = tr.dataset.serviceId;
 
             button.addEventListener("click", async () => {
                 disabledEdit(true);
-                alertLoading("Cargando producto", "Por favor, no cierre ni actualice el navegador mientras se cargan los cambios.");
+                alertLoading("Cargando servicio", "Por favor, no cierre ni actualice el navegador mientras se cargan los cambios.");
 
                 try {
-                    const response = await getApi(`products/${productId}`, token);
-                    const productData = response?.success ? response.data : null;
+                    const response = await getApi(`services/${serviceId}`, token);
+                    const serviceData = response?.success ? response.data : null;
 
-                    if (productData) {
-                        selectedProductId = getProductId(productData) ?? productId;
-                        code.value = productData.codigo ?? "";
-                        name.value = productData.nombre ?? "";
-                        description.value = productData.descripcion ?? "";
-                        unitMeasure.value = productData.unidad_medida ?? "";
-                        price.value = productData.precio ?? 0;
-                        stock.value = getProductStock(productData);
-                        selectedProductImage = getProductImage(productData);
-                        setImagePreview(selectedProductImage);
+                    if (serviceData) {
+                        selectedServiceId = getServiceId(serviceData) ?? serviceId;
+                        code.value = serviceData.codigo ?? "";
+                        name.value = serviceData.nombre ?? "";
+                        description.value = serviceData.descripcion ?? "";
+                        unitMeasure.value = serviceData.unidad_medida ?? "";
+                        price.value = serviceData.precio ?? 0;
+                        selectedServiceImage = getServiceImage(serviceData);
+                        setImagePreview(selectedServiceImage);
 
-                        newProductBtn.click();
-                        alertToast("Producto cargado correctamente", false, "success", "bottom-start");
+                        newServiceBtn.click();
+                        alertToast("Servicio cargado correctamente", false, "success", "bottom-start");
                         disabledEdit(true);
                     } else {
-                        alertMessage(response?.message ?? "No se pudo cargar el producto", response?.error ?? "", "error", 5000)
-                            .finally(() => refreshProducts({
-                                currentPage: page, search: searchInput.value, force: true
-                            }));
+                        alertMessage(response?.message ?? "No se pudo cargar el servicio", response?.error ?? "", "error", 5000)
+                            .finally(() => refreshServices({currentPage: page, search: searchInput.value, force: true}));
                     }
                 } catch (error) {
                     console.error(error);
-                    alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+                    alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
                 }
             });
         }
 
         if (button.dataset.action === "delete") {
             const tr = button.closest("tr");
-            const productId = tr.dataset.productId;
-            const productCode = tr.dataset.productCode ?? tr.children[2].textContent;
+            const serviceId = tr.dataset.serviceId;
+            const serviceCode = tr.dataset.serviceCode ?? tr.children[2].textContent;
 
             button.addEventListener("click", async () => {
-                if (await alertConfirm("Eliminar producto", `¿Está seguro de que desea eliminar al producto ${productCode}?`, "warning", true)) {
-                    alertLoading("Eliminando producto", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
+                if (await alertConfirm("Eliminar servicio", `¿Esta seguro de que desea eliminar al servicio ${serviceCode}?`, "warning", true)) {
+                    alertLoading("Eliminando servicio", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
 
                     try {
-                        const response = await deleteApi(`products/${productId}`, token);
+                        const response = await deleteApi(`services/${serviceId}`, token);
 
                         if (response.success) {
                             alertToast(response.message, false, "success", "bottom-end").finally(() => {
-                                refreshProducts({currentPage: 1, search: searchInput.value, force: true});
+                                refreshServices({currentPage: 1, search: searchInput.value, force: true});
                             });
                         } else {
                             alertMessage(response.message, response.error, "error", 5000)
-                                .finally(() => refreshProducts({
-                                    currentPage: page, search: searchInput.value, force: true
-                                }));
+                                .finally(() => refreshServices({currentPage: page, search: searchInput.value, force: true}));
                         }
                     } catch (error) {
                         console.error(error);
-                        alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+                        alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
                     }
                 }
             });
@@ -267,38 +257,40 @@ export const actionsProduct = () => {
     });
 
     deleteBtn.onclick = async () => {
-        const selectedProducts = [...checkboxes]
+        const selectedServices = [...checkboxes]
             .filter((checkbox) => checkbox.checked)
             .map((checkbox) => {
                 const tr = checkbox.closest("tr");
                 return {
-                    id: tr.dataset.productId, code: tr.dataset.productCode ?? tr.children[2].textContent,
+                    id: tr.dataset.serviceId,
+                    code: tr.dataset.serviceCode ?? tr.children[2].textContent,
                 };
             });
 
-        if (selectedProducts.length === 0) return;
+        if (selectedServices.length === 0) return;
 
-        if (await alertConfirm("Eliminar producto", `¿Está seguro de que desea eliminar a los productos ${selectedProducts.map((product) => product.code).join(", ")}?`, "warning", true)) {
-            alertLoading("Eliminando producto", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
+        if (await alertConfirm("Eliminar servicio", `¿Esta seguro de que desea eliminar a los servicios ${selectedServices.map((service) => service.code).join(", ")}?`, "warning", true)) {
+            alertLoading("Eliminando servicio", "Por favor, no cierre ni actualice el navegador mientras se eliminan los cambios.");
 
-            let productosEliminados = 0;
-            let productosNoEliminados = 0;
+            let deleted = 0;
+            let notDeleted = 0;
 
             try {
-                for (const selectedProduct of selectedProducts) {
-                    const response = await deleteApi(`products/${selectedProduct.id}`, token);
+                for (const selectedService of selectedServices) {
+                    const response = await deleteApi(`services/${selectedService.id}`, token);
 
-                    if (response.success) productosEliminados++; else {
+                    if (response.success) deleted++;
+                    else {
                         alertMessage(response.message, response.error, "error", 5000);
-                        productosNoEliminados++;
+                        notDeleted++;
                     }
                 }
 
-                alertToast(`Productos eliminados: ${productosEliminados}, Productos no eliminados: ${productosNoEliminados}`, false, "success", "bottom-end");
-                refreshProducts({currentPage: 1, search: searchInput.value, force: true});
+                alertToast(`Servicios eliminados: ${deleted}, Servicios no eliminados: ${notDeleted}`, false, "success", "bottom-end");
+                refreshServices({currentPage: 1, search: searchInput.value, force: true});
             } catch (error) {
                 console.error(error);
-                alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+                alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
             }
         }
     };
@@ -309,30 +301,29 @@ export const handleSearchInput = (event) => {
 
     if (event.type === "input") {
         if (searchValue !== "") return;
-        refreshProducts({currentPage: 1, search: ""});
+        refreshServices({currentPage: 1, search: ""});
         return;
     }
 
     if (event.type === "keydown" && event.key !== "Enter" && event.key !== "NumpadEnter") return;
-    refreshProducts({currentPage: 1, search: searchValue});
+    refreshServices({currentPage: 1, search: searchValue});
 };
 
-export const readyProducts = (searchBar) => {
+export const readyServices = (searchBar) => {
     searchInput = searchBar;
 
     deleteBtn = document.getElementById("delete");
     orderBtn = document.getElementById("order");
     filterBtn = document.getElementById("filter");
     filter = document.querySelectorAll(".dropdown-item[data-filter]");
-    newProductBtn = document.getElementById("newProduct");
+    newServiceBtn = document.getElementById("newServiceBtn");
 
-    formNewProduct = document.getElementById("formNewProduct");
+    formNewService = document.getElementById("formNewService");
     code = document.getElementById("code");
     name = document.getElementById("name");
     description = document.getElementById("description");
     unitMeasure = document.getElementById("unitMeasure");
     price = document.getElementById("price");
-    stock = document.getElementById("stock");
     image = document.getElementById("image");
     imagePreviewContainer = document.getElementById("imagePreviewContainer");
     imagePreview = document.getElementById("imagePreview");
@@ -358,19 +349,19 @@ export const readyProducts = (searchBar) => {
     orderBtn.onclick = () => {
         order = order === "asc" ? "desc" : "asc";
         orderBtn.innerHTML = `<i class="bi ${order === "asc" ? "bi-arrow-up" : "bi-arrow-down"}"></i> ${order === "asc" ? "Ascendente" : "Descendente"}`;
-        refreshProducts({currentPage: 1, search: searchInput.value});
+        refreshServices({currentPage: 1, search: searchInput.value});
     };
 
     filter.forEach((button) => {
         button.onclick = () => {
             column = button.dataset.filter;
             filterBtn.innerHTML = `<i class="bi bi-filter"></i> ${button.textContent}`;
-            refreshProducts({currentPage: 1, search: searchInput.value});
+            refreshServices({currentPage: 1, search: searchInput.value});
         };
     });
 
     editBtn.onclick = () => {
-        alertToast("La edición del producto está activa", false, "success", "bottom-start");
+        alertToast("La edicion del servicio esta activa", false, "success", "bottom-start");
         disabledEdit(false);
         edit = true;
     };
@@ -383,35 +374,35 @@ export const readyProducts = (searchBar) => {
             return;
         }
 
-        setImagePreview(selectedProductImage);
+        setImagePreview(selectedServiceImage);
     };
 
-    formNewProduct.onsubmit = async (event) => {
+    formNewService.onsubmit = async (event) => {
         event.preventDefault();
         disabledEdit(true);
         cancelBtn.disabled = true;
         closeBtn.disabled = true;
 
 
-        const data = buildProductPayload();
+        const data = buildServicePayload();
 
-        alertLoading("Guardando producto", "Por favor, no cierre ni actualice el navegador mientras se guardan los cambios.");
+        alertLoading("Guardando servicio", "Por favor, no cierre ni actualice el navegador mientras se guardan los cambios.");
 
         try {
             let response = null;
 
             if (edit) {
-                if (!selectedProductId) {
-                    alertMessage("Producto inválido", "No se encontró el identificador del producto a editar", "error", 5000);
+                if (!selectedServiceId) {
+                    alertMessage("Servicio invalido", "No se encontro el identificador del servicio a editar", "error", 5000);
                     disabledEdit(false);
                     cancelBtn.disabled = false;
                     closeBtn.disabled = false;
                     return;
                 }
 
-                response = await putApi(`products/${selectedProductId}`, data, token);
+                response = await putApi(`services/${selectedServiceId}`, data, token);
             } else {
-                response = await postApi("products", data, token);
+                response = await postApi("services", data, token);
             }
 
             if (response.success) {
@@ -421,8 +412,8 @@ export const readyProducts = (searchBar) => {
                     cancelBtn.disabled = false;
                     closeBtn.click();
                     searchInput.value = "";
-                    resetProductFormState();
-                    refreshProducts({currentPage: 1, search: "", force: true});
+                    resetServiceFormState();
+                    refreshServices({currentPage: 1, search: "", force: true});
                 });
             } else {
                 alertMessage(response.message, response.error, "error", 5000).finally(() => {
@@ -433,7 +424,7 @@ export const readyProducts = (searchBar) => {
             }
         } catch (error) {
             console.error(error);
-            alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+            alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
             disabledEdit(false);
             closeBtn.disabled = false;
             cancelBtn.disabled = false;
@@ -441,82 +432,84 @@ export const readyProducts = (searchBar) => {
     };
 
     cancelBtn.onclick = () => {
-        resetProductFormState();
+        resetServiceFormState();
     };
 
     closeBtn.onclick = () => {
-        resetProductFormState();
+        resetServiceFormState();
     };
 
     startBtn.onclick = () => {
-        refreshProducts({currentPage: 1, search: searchInput.value});
+        refreshServices({currentPage: 1, search: searchInput.value});
     };
 
     prevBtn.onclick = () => {
         const nextPage = page > 1 ? page - 1 : 1;
-        refreshProducts({currentPage: nextPage, search: searchInput.value});
+        refreshServices({currentPage: nextPage, search: searchInput.value});
     };
 
     nextBtn.onclick = () => {
         const totalPages = Number(totalPagesNum.textContent) || 1;
         const nextPage = page < totalPages ? page + 1 : totalPages;
-        refreshProducts({currentPage: nextPage, search: searchInput.value});
+        refreshServices({currentPage: nextPage, search: searchInput.value});
     };
 
     endBtn.onclick = () => {
         const totalPages = Number(totalPagesNum.textContent) || 1;
-        refreshProducts({currentPage: totalPages, search: searchInput.value});
+        refreshServices({currentPage: totalPages, search: searchInput.value});
     };
 
-    resetProductFormState();
-    refreshProducts({currentPage: 1, search: "", force: true});
+    resetServiceFormState();
+    refreshServices({currentPage: 1, search: "", force: true});
 };
 
-export async function getProducts(currentPage = 1, limit = PRODUCTS_LIMIT, search = "", force = false) {
+export async function getServices(currentPage = 1, limit = SERVICES_LIMIT, search = "", force = false) {
     const normalizedSearch = normalizeSearch(search);
-    const queryKey = buildProductsQueryKey(currentPage, limit, normalizedSearch);
+    const queryKey = buildServicesQueryKey(currentPage, limit, normalizedSearch);
 
     if (!force && queryKey === lastQueryKey) return;
 
     lastQueryKey = queryKey;
-    const requestId = ++activeProductsRequestId;
+    const requestId = ++activeServicesRequestId;
 
     addPlaceholder();
 
     const params = new URLSearchParams({
-        page: String(currentPage), limit: String(limit), search: normalizedSearch, sortBy: column, sortOrder: order,
+        page: String(currentPage),
+        limit: String(limit),
+        search: normalizedSearch,
+        sortBy: column,
+        sortOrder: order,
     });
 
     try {
-        const response = await getApi(`products?${params.toString()}`, token);
+        const response = await getApi(`services?${params.toString()}`, token);
 
-        if (requestId !== activeProductsRequestId) return;
+        if (requestId !== activeServicesRequestId) return;
 
         const list = response?.success ? (response.data ?? []) : [];
-        const productsTable = document.getElementById("tbody");
-        productsTable.innerHTML = "";
+        const servicesTable = document.getElementById("tbody");
+        servicesTable.innerHTML = "";
 
-        list.forEach((productResponse) => {
-            const productId = getProductId(productResponse);
-            const productCode = productResponse.codigo ?? "";
-            const productImage = getProductImage(productResponse);
-            const productStock = getProductStock(productResponse);
-            const registerDate = formatDateDDMMAAAA(productResponse.createdAt ?? productResponse.fecha_registro);
+        list.forEach((serviceResponse) => {
+            const serviceId = getServiceId(serviceResponse);
+            const serviceCode = serviceResponse.codigo ?? "";
+            const serviceImage = getServiceImage(serviceResponse);
+            const registerDate = formatDateDDMMAAAA(serviceResponse.createdAt ?? serviceResponse.fecha_registro);
 
             const tr = document.createElement("tr");
-            tr.dataset.productId = productId;
-            tr.dataset.productCode = productCode;
+            tr.dataset.serviceId = serviceId;
+            tr.dataset.serviceCode = serviceCode;
             tr.innerHTML = `
                 <th scope="row" class="text-center">
                     <input type="checkbox" class="select-checkbox" />
                 </th>
-                ${buildProductImageCell(productImage, productCode)}
-                <td>${productCode}</td>
-                <td>${getDisplayOrFallback(productResponse.nombre)}</td>
-                <td>${getDisplayOrFallback(productResponse.descripcion)}</td>
-                <td>${getDisplayOrFallback(productResponse.unidad_medida)}</td>
-                <td>${formatCurrency(productResponse.precio)}</td>
-                <td>${productStock}</td>
+                ${buildServiceImageCell(serviceImage, serviceCode)}
+                <td>${serviceCode}</td>
+                <td>${getDisplayOrFallback(serviceResponse.nombre)}</td>
+                <td>${getDisplayOrFallback(serviceResponse.descripcion)}</td>
+                <td>${getDisplayOrFallback(serviceResponse.unidad_medida)}</td>
+                <td>${formatCurrency(serviceResponse.precio)}</td>
                 <td>${registerDate}</td>
                 <td class="text-center">
                     <button class="btn options" type="button" data-bs-toggle="dropdown">
@@ -524,22 +517,22 @@ export async function getProducts(currentPage = 1, limit = PRODUCTS_LIMIT, searc
                     </button>
                     <ul class="dropdown-menu">
                         <li>
-                            <button class="dropdown-item" data-action="consult"><i class="bi bi-pencil-square"></i> Ver producto</button>
+                            <button class="dropdown-item" data-action="consult"><i class="bi bi-pencil-square"></i> Ver servicio</button>
                         </li>
                         <li>
-                            <button class="dropdown-item" data-action="delete"><i class="bi bi-trash3"></i> Eliminar producto</button>
+                            <button class="dropdown-item" data-action="delete"><i class="bi bi-trash3"></i> Eliminar servicio</button>
                         </li>
                     </ul>
                 </td>
             `;
 
-            productsTable.appendChild(tr);
+            servicesTable.appendChild(tr);
         });
 
-        attachProductImageFallbacks(productsTable);
+        attachServiceImageFallbacks(servicesTable);
 
         if (!response?.success) {
-            alertMessage(response?.message ?? "Error al obtener productos", response?.error ?? "", "error", 5000);
+            alertMessage(response?.message ?? "Error al obtener servicios", response?.error ?? "", "error", 5000);
         }
 
         const totalRegisters = Number(response?.pagination?.total ?? list.length);
@@ -557,12 +550,13 @@ export async function getProducts(currentPage = 1, limit = PRODUCTS_LIMIT, searc
         nextBtn.disabled = page >= totalPages;
         endBtn.disabled = page >= totalPages;
 
-        actionsProduct();
+        actionsService();
     } catch (error) {
-        if (requestId !== activeProductsRequestId) return;
+        if (requestId !== activeServicesRequestId) return;
         console.error(error);
-        alertMessage("Error de conexión", "No se pudo conectar con el servidor", "error", 5000);
+        alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
     } finally {
-        if (requestId === activeProductsRequestId) removePlaceholder();
+        if (requestId === activeServicesRequestId) removePlaceholder();
     }
 }
+

@@ -25,10 +25,16 @@
                         <button class="dropdown-item" data-filter="nombre"><i class="bi bi-filter-left"></i> Nombre</button>
                     </li>
                     <li>
+                        <button class="dropdown-item" data-filter="unidad_medida"><i class="bi bi-filter-left"></i> Unidad</button>
+                    </li>
+                    <li>
                         <button class="dropdown-item" data-filter="precio"><i class="bi bi-filter-left"></i> Precio</button>
                     </li>
                     <li>
-                        <button class="dropdown-item" data-filter="cantidad"><i class="bi bi-filter-left"></i> Cantidad</button>
+                        <button class="dropdown-item" data-filter="stock"><i class="bi bi-filter-left"></i> Stock</button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item" data-filter="createdAt"><i class="bi bi-filter-left"></i> Fecha</button>
                     </li>
                 </ul>
 
@@ -43,12 +49,14 @@
                     <thead>
                         <tr>
                             <th scope="col" class="text-center"><i class="bi bi-check-square-fill"></i></th>
-                            <th scope="col">Imagen</th>
+                            <th scope="col" class="text-center">Imagen</th>
                             <th scope="col">Código</th>
                             <th scope="col">Nombre</th>
                             <th scope="col">Descripción</th>
+                            <th scope="col">Unidad</th>
                             <th scope="col">Precio</th>
-                            <th scope="col">Cantidad</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Registrado</th>
                             <th scope="col" class="text-center"><i class="bi bi-caret-down-fill"></i></th>
                         </tr>
                     </thead>
@@ -68,7 +76,7 @@
         </div>
 
         <!-- Formulario de productos -->
-        <div class="offcanvas form-new-product offcanvas-end" data-bs-backdrop="static" tabindex="-1" id="offcanvasNewProduct" aria-labelledby="offcanvasNewProductLabel">
+        <div class="offcanvas form-basic offcanvas-end" data-bs-backdrop="static" tabindex="-1" id="offcanvasNewProduct" aria-labelledby="offcanvasNewProductLabel">
             <div class="offcanvas-header d-flex justify-content-between">
                 <button type="button" class="btn close" id="close" data-bs-dismiss="offcanvas" aria-label="close"><i class="bi bi-x-lg"></i></button>
                 <p class="offcanvas-title" id="offcanvasNewProductLabel">Productos</p>
@@ -93,11 +101,17 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            <label for="description" class="form-label">Descripción*</label>
-                            <textarea class="form-control focus-ring" id="description" rows="2" placeholder="Escribe aquí la descripción del producto" required></textarea>
+                            <label for="description" class="form-label">Descripción</label>
+                            <textarea class="form-control focus-ring" id="description" rows="2" placeholder="Escribe aquí la descripción del producto"></textarea>
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col">
+                            <label for="unitMeasure" class="form-label">Unidad de medida*</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control focus-ring" id="unitMeasure" placeholder="Ej. pieza, caja, kg" required />
+                            </div>
+                        </div>
                         <div class="col">
                             <label for="price" class="form-label">Precio*</label>
                             <div class="input-group flex-nowrap">
@@ -106,17 +120,20 @@
                             </div>
                         </div>
                         <div class="col">
-                            <label for="quantity" class="form-label">Cantidad*</label>
+                            <label for="stock" class="form-label">Stock*</label>
                             <div class="input-group flex-nowrap">
                                 <span class="input-group-text p-2">U</span>
-                                <input type="number" class="form-control focus-ring" id="quantity" min="" step="1" placeholder="0" required />
+                                <input type="number" class="form-control focus-ring" id="stock" min="0" step="1" placeholder="0" required />
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            <label for="description" class="form-label">Imagen*</label>
-                            <input class="focus-ring" type="file" id="image" accept="image/*" required />
+                            <label for="description" class="form-label">Imagen</label>
+                            <input class="focus-ring" type="file" id="image" accept="image/*" />
+                            <div id="imagePreviewContainer" class="d-none mt-4 text-center">
+                                <img id="imagePreview" class="img-fluid rounded product-image-preview" src="" alt="Vista previa de imagen" />
+                            </div>
                         </div>
                     </div>
                     <div class="row m-0">

@@ -42,11 +42,16 @@
     padding-right: 24px;
 }
 
-.form-pedido {
+.form-ext {
+    width: 920px !important;
+}
+
+.form-basic {
     width: 690px !important;
 }
 
-.form-new-user,
-.form-new-product {
-    width: 690px !important;
+.product-image-preview {
+    width: 192px;
+    height: 192px;
+    object-fit: cover;
 }
