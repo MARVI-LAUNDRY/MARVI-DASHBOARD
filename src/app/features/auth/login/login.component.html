@@ -1,0 +1,129 @@
+<img
+  src="https://marvi-api.onrender.com/pictures/login.jpg"
+  class="background-image"
+  alt="Imagen de inicio de sesion"
+/>
+<nav
+  class="navbar"
+  [style.justify-content]="navJustify"
+  [class.hide]="navAnimationClass === 'hide'"
+  [class.show]="navAnimationClass === 'show'"
+  (animationend)="onNavAnimationEnd($event.animationName)"
+>
+  <img src="https://marvi-api.onrender.com/pictures/logo.png" alt="MARVI logo" />
+</nav>
+
+<main class="main">
+  <section class="login-form">
+    <h2><i class="bi bi-stars"></i> !Bienvenido de nuevo!</h2>
+    <p>Por favor ingresa tus credenciales para iniciar sesion.</p>
+
+    <div class="input-label">
+      <label for="username"><i class="bi bi-person-fill"></i> Usuario:</label>
+      <input type="text" id="username" placeholder="Ingresa tu usuario" [(ngModel)]="username" [disabled]="mode !== 'login'" />
+    </div>
+
+    <div class="input-label">
+      <label for="password"><i class="bi bi-unlock-fill"></i> Contrasena:</label>
+      <div class="input-password">
+        <input
+          [type]="passwordInputType"
+          id="password"
+          placeholder="Ingresa tu contrasena"
+          [(ngModel)]="password"
+          [disabled]="mode !== 'login'"
+        />
+        <span id="eye-password-button" (click)="togglePasswordVisibility()">
+          <i class="bi" [class.bi-eye]="passwordInputType === 'password'" [class.bi-eye-slash]="passwordInputType === 'text'"></i>
+        </span>
+      </div>
+    </div>
+
+    <button class="btn primary" id="login-submit-button" (click)="submitLogin()" [disabled]="mode !== 'login' || loginSubmitting">
+      Iniciar sesion
+    </button>
+    <button class="btn secondary-link" id="recovery-button" (click)="goToRecovery()" [disabled]="mode !== 'login'">
+      Olvidaste tu contrasena?
+    </button>
+  </section>
+
+  <section class="login-image"></section>
+
+  <section class="recovery-form" [class.visually-hidden]="!isRecoveryVisible()">
+    <h2><i class="bi bi-binoculars-fill"></i> !Recupera tu contrasena!</h2>
+    <p>
+      Ingresa tu correo electronico registrado para recibir un codigo de verificacion temporal que te permitira
+      restablecer tu contrasena de forma segura. <b>Si no recibes el correo, verifica tu carpeta de spam.</b>
+    </p>
+
+    <div class="input-label">
+      <label for="recovery-email"><i class="bi bi-envelope-fill"></i> Correo registrado:</label>
+      <input
+        type="text"
+        id="recovery-email"
+        placeholder="Ingresa tu correo electronico"
+        [(ngModel)]="recoveryEmail"
+        [disabled]="mode !== 'recovery' || recoverySubmitting"
+      />
+    </div>
+
+    <button
+      class="btn primary"
+      id="recovery-submit-button"
+      (click)="submitRecovery()"
+      [disabled]="mode !== 'recovery' || recoverySubmitting"
+    >
+      Enviar codigo
+    </button>
+    <button class="btn secondary-link" id="recovery-back-button" (click)="goToLogin()" [disabled]="mode !== 'recovery'">
+      Volver al inicio
+    </button>
+  </section>
+
+  <section class="reset-form" [class.visually-hidden]="!isResetVisible()">
+    <h2><i class="bi bi-shield-lock-fill"></i> !Actualiza tu contrasena!</h2>
+    <p>
+      <b>Crea una contrasena nueva y segura de al menos 6 caracteres.</b> Para mayor proteccion, combina letras,
+      numeros y simbolos.
+    </p>
+
+    <div class="input-label">
+      <label for="reset-code"><i class="bi bi-envelope-paper-fill"></i> Codigo de un solo uso:</label>
+      <input
+        type="text"
+        id="reset-code"
+        placeholder="Ingresa tu codigo de un solo uso"
+        [(ngModel)]="resetCode"
+        [disabled]="mode !== 'reset' || resetSubmitting"
+      />
+    </div>
+
+    <div class="input-label">
+      <label for="reset-password"><i class="bi bi-lock-fill"></i> Nueva contrasena:</label>
+      <input
+        type="text"
+        id="reset-password"
+        placeholder="Ingresa tu nueva contrasena"
+        [(ngModel)]="resetPassword"
+        [disabled]="mode !== 'reset' || resetSubmitting"
+      />
+    </div>
+
+    <button class="btn primary" id="reset-submit-button" (click)="submitReset()" [disabled]="mode !== 'reset' || resetSubmitting">
+      Cambiar contrasena
+    </button>
+    <button class="btn secondary-link" id="reset-back-button" (click)="goToLogin()" [disabled]="mode !== 'reset'">
+      Volver al inicio
+    </button>
+  </section>
+</main>
+
+<footer
+  class="footer"
+  [style.justify-content]="navJustify"
+  [class.hide]="footerAnimationClass === 'hide'"
+  [class.show]="footerAnimationClass === 'show'"
+>
+  <span>&copy; 2024 Lavanderia MARVI.</span>
+</footer>
+

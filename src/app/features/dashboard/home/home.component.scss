@@ -1,0 +1,74 @@
+.statistics,
+.graphics {
+  margin: 0 0 24px 0;
+  gap: 24px;
+}
+
+.statistics .col,
+.graphics .col {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.graphics .col {
+  min-width: calc(50% - 12px);
+}
+
+.statistics .col {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.statistics .col > i {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  align-content: center;
+  border-radius: 8px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.content p {
+  margin: 0;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.info p {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.up {
+  color: #65b741;
+}
+
+.down {
+  color: #ff6868;
+}
+
+canvas {
+  min-height: 280px;
+}
+
+@media screen and (max-width: 992px) {
+  .graphics .col {
+    min-width: 100%;
+  }
+}
+

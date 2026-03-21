@@ -1,0 +1,201 @@
+<section class="section-configuration">
+  <header class="header-configuration">
+    <p>Configuración de usuario</p>
+    <div class="form-check form-switch form-check-reverse" title="Modo oscuro">
+      <input class="form-check-input focus-ring" type="checkbox" role="switch" id="switchTheme" [checked]="darkMode" (change)="toggleTheme()" />
+      <label class="form-check-label" for="switchTheme">
+        <i class="bi" [class.bi-cloud-moon-fill]="darkMode" [class.bi-cloud-sun-fill]="!darkMode"></i> {{ themeLabel }}
+      </label>
+    </div>
+  </header>
+
+  <article class="article-configuration">
+    <div class="profile">
+      <img [src]="profileImage" id="profile" alt="Foto de perfil" class="img-fluid rounded-circle" />
+      <button type="button" class="btn bell" id="pencil" (click)="openProfilePicker()">
+        <i class="bi bi-pencil-fill"></i>
+      </button>
+    </div>
+
+    <div class="user-info">
+      <form id="formUser" (ngSubmit)="saveProfile()">
+        <div class="row mb-4">
+          <div class="col">
+            <label for="user" class="form-label">Usuario*</label>
+            <input
+              type="text"
+              id="user"
+              class="form-control focus-ring"
+              placeholder="Escribe tu usuario"
+              [(ngModel)]="usuario"
+              name="usuario"
+              [disabled]="!editProfile"
+              required
+            />
+          </div>
+          <div class="col">
+            <label for="name" class="form-label">Nombre*</label>
+            <input
+              type="text"
+              id="name"
+              class="form-control focus-ring"
+              placeholder="Escribe tu nombre"
+              [(ngModel)]="nombre"
+              name="nombre"
+              [disabled]="!editProfile"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col">
+            <label for="firstSurname" class="form-label">Primer apellido*</label>
+            <input
+              type="text"
+              id="firstSurname"
+              class="form-control focus-ring"
+              placeholder="Escribe tu primer apellido"
+              [(ngModel)]="primerApellido"
+              name="primerApellido"
+              [disabled]="!editProfile"
+              required
+            />
+          </div>
+          <div class="col">
+            <label for="secondSurname" class="form-label">Segundo apellido*</label>
+            <input
+              type="text"
+              id="secondSurname"
+              class="form-control focus-ring"
+              placeholder="Escribe tu segundo apellido"
+              [(ngModel)]="segundoApellido"
+              name="segundoApellido"
+              [disabled]="!editProfile"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col">
+            <label for="email" class="form-label">Correo*</label>
+            <input
+              type="email"
+              id="email"
+              class="form-control focus-ring"
+              placeholder="Escribe tu correo electrónico"
+              [(ngModel)]="correo"
+              name="correo"
+              [disabled]="!editProfile"
+              required
+            />
+          </div>
+          <div class="col">
+            <label for="role" class="form-label">Rol*</label>
+            <select class="form-select focus-ring" id="role" [ngModel]="rol" name="rol" disabled required>
+              <option value="administrador">Administrador</option>
+              <option value="usuario">Usuario</option>
+              <option value="invitado">Invitado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row gap-3">
+          <div class="col text-center">
+            <button type="button" class="btn secondary" id="cancel" [class.d-none]="!editProfile" (click)="cancelProfileEdit()">
+              <i class="bi bi-trash3"></i> Cancelar cambios
+            </button>
+            <button type="button" class="btn primary" id="edit" [class.d-none]="editProfile" (click)="enableProfileEdit()">
+              <i class="bi bi-pencil-square"></i> Modificar información
+            </button>
+          </div>
+          <div class="col text-center">
+            <button type="submit" class="btn primary" id="save" [disabled]="!editProfile">
+              <i class="bi bi-save"></i> Guardar cambios
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </article>
+
+  <article class="article-configuration">
+    <div class="user-info">
+      <form id="formPassword" (ngSubmit)="savePassword()">
+        <div class="row mb-4">
+          <div class="col">
+            <label for="oldPassword" class="form-label">Contraseña actual*</label>
+            <div class="input-password">
+              <input
+                [type]="oldPasswordInputType"
+                id="oldPassword"
+                placeholder="Ingresa tu contraseña"
+                [(ngModel)]="oldPassword"
+                name="oldPassword"
+                [disabled]="!editPassword"
+              />
+              <span name="eye" (click)="togglePasswordVisibility('old')">
+                <i class="bi" [class.bi-eye]="oldPasswordInputType === 'password'" [class.bi-eye-slash]="oldPasswordInputType === 'text'"></i>
+              </span>
+            </div>
+          </div>
+          <div class="col">
+            <label for="newPassword" class="form-label">Nueva contraseña*</label>
+            <div class="input-password">
+              <input
+                [type]="newPasswordInputType"
+                id="newPassword"
+                placeholder="Ingresa tu nueva contraseña"
+                [(ngModel)]="newPassword"
+                name="newPassword"
+                [disabled]="!editPassword"
+                required
+              />
+              <span name="eye" (click)="togglePasswordVisibility('new')">
+                <i class="bi" [class.bi-eye]="newPasswordInputType === 'password'" [class.bi-eye-slash]="newPasswordInputType === 'text'"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row gap-3">
+          <div class="col text-center">
+            <button type="button" class="btn secondary" id="cancelPassword" [class.d-none]="!editPassword" (click)="cancelPasswordEdit()">
+              <i class="bi bi-trash3"></i> Cancelar cambios
+            </button>
+            <button type="button" class="btn primary" id="editPassword" [class.d-none]="editPassword" (click)="enablePasswordEdit()">
+              <i class="bi bi-pencil-square"></i> Modificar contraseña
+            </button>
+          </div>
+          <div class="col text-center">
+            <button type="submit" class="btn primary" id="savePassword" [disabled]="!editPassword">
+              <i class="bi bi-save"></i> Guardar cambios
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </article>
+</section>
+
+<div class="modal fade show d-block" id="profilePics" tabindex="-1" *ngIf="showProfilePicker" (click)="closeProfilePicker()">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header justify-content-center">
+        <h3 id="profilePicsLabel">Elige una foto de perfil</h3>
+      </div>
+      <div class="modal-body">
+        <div class="row row-cols-4 g-4">
+          <div class="col" *ngFor="let option of profileOptions">
+            <img [src]="option" alt="Perfil" class="img-fluid" (click)="selectProfileImage(option)" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn primary" id="profileCancel" (click)="closeProfilePicker()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+

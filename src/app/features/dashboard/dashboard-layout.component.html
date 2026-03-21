@@ -1,0 +1,63 @@
+<section class="body-dashboard">
+  <header class="header-dashboard">
+    <div class="header-brand">
+      <button class="btn menu" title="Contraer menu" (click)="toggleMenu()"><i class="bi bi-list"></i></button>
+      <img src="https://marvi-api.onrender.com/pictures/logo.png" alt="MARVI logo" />
+    </div>
+
+    <div class="header-search">
+      <div class="input-group" [class.d-none]="!searchVisible" title="Buscar">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input
+          type="search"
+          class="form-control search"
+          placeholder="{{ searchPlaceholder }}"
+          [(ngModel)]="searchValue"
+          (keydown)="onSearchKeyDown($event)"
+          (input)="onSearchInput()"
+        />
+      </div>
+    </div>
+
+    <div class="header-buttons">
+      <button type="button" class="btn bell" title="Notificaciones"><i class="bi bi-bell"></i></button>
+    </div>
+  </header>
+
+  <section class="section-dashboard row m-0 flex-nowrap">
+    <div class="col-auto p-0">
+      <nav class="nav-dashboard" [class.mini-shell]="mini">
+        <div class="nav-menu" [class.mini]="mini">
+          <a routerLink="home" routerLinkActive="active" title="Inicio"><i class="bi bi-house"></i><span>Inicio</span></a>
+          <a routerLink="orders" routerLinkActive="active" title="Pedidos"><i class="bi bi-journal-text"></i><span>Pedidos</span></a>
+          <a routerLink="purchases" routerLinkActive="active" title="Compras" *ngIf="canShowMenuItem('purchases')"><i class="bi bi-cart"></i><span>Compras</span></a>
+          <a routerLink="clients" routerLinkActive="active" title="Clientes" *ngIf="canShowMenuItem('clients')"><i class="bi bi-people"></i><span>Clientes</span></a>
+          <a routerLink="providers" routerLinkActive="active" title="Proveedores" *ngIf="canShowMenuItem('providers')"><i class="bi bi-truck"></i><span>Proveedores</span></a>
+          <a routerLink="products" routerLinkActive="active" title="Productos"><i class="bi bi-box2"></i><span>Productos</span></a>
+          <a routerLink="services" routerLinkActive="active" title="Servicios"><i class="bi bi-basket3"></i><span>Servicios</span></a>
+          <a routerLink="users" routerLinkActive="active" title="Usuarios" *ngIf="canShowMenuItem('users')"><i class="bi bi-person-lock"></i><span>Usuarios</span></a>
+        </div>
+
+        <div class="nav-menu" [class.mini]="mini">
+          <button class="btn nav-link-like" type="button" (click)="logout()" title="Cerrar sesion">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Salir</span>
+          </button>
+          <div class="line"></div>
+          <a routerLink="configuration" routerLinkActive="active" class="user" title="Usuario">
+            <img [src]="profileImage" alt="Foto de perfil" />
+            <span>
+              <p>{{ user?.nombre || 'Usuario' }}</p>
+              <small>{{ user?.primer_apellido }} {{ user?.segundo_apellido }}</small>
+            </span>
+          </a>
+        </div>
+      </nav>
+    </div>
+
+    <main class="col m-0 dashboard-main" id="main">
+      <router-outlet></router-outlet>
+    </main>
+  </section>
+</section>
+

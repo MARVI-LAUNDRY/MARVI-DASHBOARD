@@ -1,0 +1,346 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import '../legacy/src/css/dashboard.css';
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+:root {
+  --primary-color: #dd5746;
+  --secondary-color: #ffe1c0;
+  --hover-color-p: #e96d5c;
+  --hover-color-s: #ffd3b0;
+
+  --background: #ffffff;
+  --background-content: #f8f9fa;
+  --border: #dcdfe3;
+  --hover-border: #b8bfc5;
+  --text: #2d3e58;
+  --placeholder: #a6a6a6;
+
+  --background-dark: #2e2e2e;
+  --background-content-dark: #252525;
+  --border-dark: #444444;
+  --hover-border-dark: #555555;
+  --text-dark: #f0f0f0;
+  --placeholder-dark: #a0a0a0;
+
+  --background-light: #ffffff;
+  --background-content-light: #f8f9fa;
+  --border-light: #dcdfe3;
+  --hover-border-light: #b8bfc5;
+  --text-light: #2d3e58;
+  --placeholder-light: #a6a6a6;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+  scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin;
+}
+
+html {
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.visually-hidden {
+  display: none !important;
+}
+
+.swal2-icon:has(.washer-loader) {
+  border: none;
+}
+
+.alert-popup {
+  background: var(--background) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+
+.alert-popup h2 {
+  color: var(--primary-color);
+}
+
+.alert-popup .swal2-html-container {
+  color: var(--text);
+}
+
+.alert-confirm {
+  background: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  box-shadow: none !important;
+}
+
+.alert-cancel {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  border-radius: 8px;
+  box-shadow: none !important;
+}
+
+.btn {
+  border: 1px solid transparent !important;
+  border-radius: 8px;
+  padding: 8px 20px;
+  outline: none !important;
+}
+
+.primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.primary:hover {
+  background: var(--hover-color-p);
+  color: white;
+}
+
+.primary:disabled {
+  background: var(--border);
+  border-color: var(--hover-border) !important;
+}
+
+.secondary {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+.secondary:hover {
+  background: var(--hover-color-s);
+  color: var(--primary-color);
+}
+
+.secondary:disabled {
+  background: var(--border);
+  border-color: var(--hover-border) !important;
+}
+
+.secondary-link {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.secondary-link:hover {
+  text-decoration: underline;
+  color: var(--hover-color-p);
+}
+
+.delete,
+.new,
+.filter {
+  background: var(--background);
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+
+.delete,
+.new {
+  color: var(--primary-color);
+}
+
+.delete:hover,
+.new:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.filter:hover {
+  background: var(--background-content);
+}
+
+.menu {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--placeholder);
+  border-radius: 8px;
+}
+
+.menu:hover {
+  color: var(--primary-color);
+}
+
+.bell {
+  width: 48px;
+  height: 48px;
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  border-radius: 50%;
+  padding: 0;
+}
+
+.bell:hover {
+  background: var(--hover-color-s);
+  color: var(--primary-color);
+}
+
+input:not([type='checkbox']),
+select,
+textarea {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border) !important;
+  padding: 12px !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.input-group {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.input-group input,
+.input-group span {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent;
+}
+
+.input-group:focus-within {
+  border-color: var(--primary-color);
+}
+
+input:not([type='checkbox'])::placeholder,
+select::placeholder,
+textarea::placeholder {
+  color: var(--placeholder) !important;
+}
+
+input:not([type='checkbox']):hover,
+select:hover,
+textarea:hover {
+  border-color: var(--hover-border) !important;
+}
+
+input:not([type='checkbox']):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary-color) !important;
+}
+
+input:disabled:not([type='checkbox']),
+select:disabled,
+textarea:disabled {
+  color: var(--placeholder) !important;
+  background: var(--background-content) !important;
+}
+
+.input-password {
+  position: relative;
+}
+
+.input-password > input {
+  width: 100%;
+}
+
+.input-password > span {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-45%);
+  cursor: pointer;
+  font-size: 1.4rem;
+  color: var(--hover-border);
+}
+
+.input-password > span:hover {
+  color: var(--primary-color);
+}
+
+.alert-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.washer-loader {
+  display: flex;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+}
+
+.washer {
+  width: 70px;
+  height: 100%;
+  background: var(--primary-color);
+  position: relative;
+  border-radius: 10px;
+}
+
+.washer:before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--background);
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  border-radius: 50%;
+}
+
+.washer:after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--background);
+  position: absolute;
+  top: 10px;
+  left: 22px;
+  border-radius: 50%;
+}
+
+.door {
+  width: 50px;
+  height: 50px;
+  background: var(--background);
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.clothes {
+  width: 34px;
+  height: 34px;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  animation: rotate 1.5s linear infinite;
+}
+
+.clothes:before {
+  content: '';
+  width: 34px;
+  height: 17px;
+  background: var(--primary-color);
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-top-left-radius: 50% 100%;
+  border-top-right-radius: 50% 100%;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

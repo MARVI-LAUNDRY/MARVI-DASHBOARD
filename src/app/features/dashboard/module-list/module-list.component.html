@@ -1,0 +1,284 @@
+<div class="header">
+  <p>Lista de {{ moduleDef?.title?.toLowerCase() || 'registros' }}</p>
+  <div class="d-flex gap-3">
+    <button class="btn delete" [class.d-none]="!canDeleteRows" (click)="deleteSelected()" title="Eliminar">
+      <i class="bi bi-trash3"></i> Eliminar
+    </button>
+    <div class="position-relative">
+      <button class="btn filter" (click)="toggleFilterMenu()" title="Filtros de la tabla">
+        <i class="bi bi-filter"></i> {{ selectedFilterLabel }}
+      </button>
+      <ul class="dropdown-menu show" *ngIf="showFilterMenu">
+        <li *ngFor="let filter of availableFilters">
+          <button class="dropdown-item" type="button" (click)="selectFilter(filter)">
+            <i class="bi bi-filter-left"></i> {{ filter.label }}
+          </button>
+        </li>
+      </ul>
+    </div>
+    <button class="btn filter" (click)="toggleSort()" title="Ordenar tabla">
+      <i class="bi" [class.bi-arrow-down]="sortOrder === 'desc'" [class.bi-arrow-up]="sortOrder === 'asc'"></i>
+      {{ sortOrder === 'asc' ? 'Ascendente' : 'Descendente' }}
+    </button>
+    <button class="btn new" (click)="openCreateForm()" title="Nuevo registro">
+      <i class="bi bi-plus-lg"></i> {{ newButtonLabel }}
+    </button>
+  </div>
+</div>
+
+<div class="table-container position-relative" id="tableContainer">
+  <div class="table-expand" [class.loading]="loading">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col" class="text-center"><i class="bi bi-check-square-fill"></i></th>
+          <th scope="col" *ngFor="let column of tableColumns">{{ column.label }}</th>
+          <th scope="col" class="text-center"><i class="bi bi-caret-down-fill"></i></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of rows">
+          <td class="text-center">
+            <input
+              class="form-check-input select-checkbox"
+              type="checkbox"
+              [checked]="isRowSelected(row)"
+              (change)="onToggleSelect(row, $any($event.target).checked)"
+            />
+          </td>
+          <td *ngFor="let column of tableColumns">
+            <ng-container [ngSwitch]="column.type">
+              <ng-container *ngSwitchCase="'image'">
+                <ng-container *ngIf="getImageUrl(row, column.key) as imageUrl; else imagePlaceholder">
+                  <img class="table-image" [src]="imageUrl" alt="Imagen" />
+                </ng-container>
+                <ng-template #imagePlaceholder>
+                  <div class="product-image-placeholder d-inline-flex align-items-center justify-content-center rounded">
+                    <i class="bi bi-image product-image-placeholder-icon" title="Sin imagen"></i>
+                  </div>
+                </ng-template>
+              </ng-container>
+
+              <span *ngSwitchCase="'status'" [class]="getStatusClass(row[column.key])">
+                {{ displayColumnValue(row, column) }}
+              </span>
+
+              <span *ngSwitchDefault>{{ displayColumnValue(row, column) }}</span>
+            </ng-container>
+          </td>
+          <td class="text-center actions-cell">
+            <div class="position-relative d-inline-block">
+              <button class="btn options" type="button" (click)="toggleRowMenu(row)">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+
+              <ul class="dropdown-menu show actions-menu" *ngIf="isRowMenuOpen(row)">
+                <li>
+                  <button class="dropdown-item" type="button" (click)="consultRow(row)">
+                    <i class="bi bi-search"></i> Consultar
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" type="button" (click)="deleteRow(row)">
+                    <i class="bi bi-trash3"></i> Eliminar
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="rows.length === 0">
+          <td [attr.colspan]="tableColumns.length + 2" class="text-center py-4">No hay registros para mostrar.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="spinner-container position-absolute top-50 start-50 translate-middle">
+      <div class="spinner-border" role="status"></div>
+    </div>
+  </div>
+
+  <div class="table-footer">
+    <p><span>{{ selectedCount }}</span> de <span>{{ totalRows }}</span> filas seleccionadas</p>
+    <div class="d-flex gap-3 align-items-center">
+      <p>Pagina <span>{{ page }}</span> de <span>{{ totalPages }}</span></p>
+      <button class="btn filter" (click)="goStart()" [disabled]="page <= 1"><i class="bi bi-chevron-double-left"></i></button>
+      <button class="btn filter" (click)="goPrev()" [disabled]="page <= 1"><i class="bi bi-chevron-left"></i></button>
+      <button class="btn filter" (click)="goNext()" [disabled]="page >= totalPages"><i class="bi bi-chevron-right"></i></button>
+      <button class="btn filter" (click)="goEnd()" [disabled]="page >= totalPages"><i class="bi bi-chevron-double-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<section class="side-form-overlay" *ngIf="showForm" (click)="closeCreateForm()">
+  <article
+    class="side-form offcanvas offcanvas-end show"
+    [class.form-ext]="isExtendedForm"
+    [class.form-basic]="!isExtendedForm"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="side-form-header offcanvas-header d-flex justify-content-between">
+      <button type="button" class="btn close" (click)="closeCreateForm()"><i class="bi bi-x-lg"></i></button>
+      <p>{{ offcanvasTitle }}</p>
+      <button type="button" class="btn edit" [disabled]="!canEnableEdit" (click)="enableEditMode()">
+        <i class="bi bi-pencil-square"></i>
+      </button>
+    </header>
+
+    <form class="side-form-body offcanvas-body" (ngSubmit)="submitCreateForm()">
+      <p class="text-center mb-4" *ngIf="formIntro">{{ formIntro }}</p>
+
+      <div class="row" *ngFor="let row of formRows">
+        <div class="col mb-3" *ngFor="let field of getFieldsForRow(row)">
+          <label class="form-label" [for]="field.key">{{ field.label }}</label>
+
+          <input
+            *ngIf="(field.type === 'text' || field.type === 'email' || field.type === 'number' || field.type === 'password') && !getFieldPrefix(field.key)"
+            class="form-control focus-ring"
+            [id]="field.key"
+            [type]="field.type"
+            [placeholder]="field.placeholder ?? ''"
+            [(ngModel)]="formData[field.key]"
+            [name]="field.key"
+            [required]="field.required ?? false"
+            [readonly]="(field.readonly ?? false) || isFieldDisabled(field.key)"
+            [disabled]="isFieldDisabled(field.key)"
+          />
+
+          <div
+            *ngIf="(field.type === 'number' || field.type === 'text') && getFieldPrefix(field.key)"
+            class="input-group flex-nowrap"
+          >
+            <span class="input-group-text p-2">{{ getFieldPrefix(field.key) }}</span>
+            <input
+              class="form-control focus-ring"
+              [id]="field.key"
+              [type]="field.type"
+              [placeholder]="field.placeholder ?? ''"
+              [(ngModel)]="formData[field.key]"
+              [name]="field.key"
+              [required]="field.required ?? false"
+              [readonly]="(field.readonly ?? false) || isFieldDisabled(field.key)"
+              [disabled]="isFieldDisabled(field.key)"
+            />
+          </div>
+
+          <textarea
+            *ngIf="field.type === 'textarea'"
+            class="form-control focus-ring"
+            [id]="field.key"
+            rows="2"
+            [placeholder]="field.placeholder ?? ''"
+            [(ngModel)]="formData[field.key]"
+            [name]="field.key"
+            [required]="field.required ?? false"
+            [readonly]="(field.readonly ?? false) || isFieldDisabled(field.key)"
+            [disabled]="isFieldDisabled(field.key)"
+          ></textarea>
+
+          <select
+            *ngIf="field.type === 'select'"
+            class="form-select focus-ring"
+            [id]="field.key"
+            [(ngModel)]="formData[field.key]"
+            [name]="field.key"
+            [required]="field.required ?? false"
+            [disabled]="isFieldDisabled(field.key)"
+          >
+            <option value="">Seleccione una opcion</option>
+            <option *ngFor="let option of getFieldOptions(field.key)" [value]="option.value">{{ option.label }}</option>
+          </select>
+
+          <input
+            *ngIf="field.type === 'file'"
+            class="focus-ring"
+            type="file"
+            [id]="field.key"
+            accept="image/*"
+            [disabled]="isFieldDisabled(field.key)"
+            (change)="onFileSelected(field.key, $event)"
+          />
+        </div>
+      </div>
+
+      <div class="line-editor" *ngIf="showProductsEditor">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label class="form-label m-0">Productos*</label>
+          <button class="btn filter" type="button" [disabled]="isLineEditorDisabled()" (click)="addProductLine()"><i class="bi bi-plus-lg"></i> Agregar producto</button>
+        </div>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let line of productLines; let i = index">
+              <td>
+                <select class="form-select form-select-sm" [(ngModel)]="line.itemId" [name]="'product-'+i" [disabled]="isLineEditorDisabled()">
+                  <option value="">Seleccione un producto</option>
+                  <option *ngFor="let option of productOptions" [value]="option.value">{{ option.label }}</option>
+                </select>
+              </td>
+              <td><input class="form-control form-control-sm" type="number" min="1" [(ngModel)]="line.cantidad" [name]="'pc-'+i" [disabled]="isLineEditorDisabled()" /></td>
+              <td><input class="form-control form-control-sm" type="number" min="0" step="0.01" [(ngModel)]="line.precio" [name]="'pp-'+i" [disabled]="isLineEditorDisabled()" /></td>
+              <td class="text-end">${{ (line.cantidad * line.precio).toFixed(2) }}</td>
+              <td><button class="btn close" type="button" [disabled]="isLineEditorDisabled()" (click)="removeProductLine(i)"><i class="bi bi-trash3"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="text-end m-0" *ngIf="moduleDef?.key === 'purchases'">Total: ${{ purchaseTotal.toFixed(2) }}</p>
+      </div>
+
+      <div class="line-editor" *ngIf="showServicesEditor">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label class="form-label m-0">Servicios</label>
+          <button class="btn filter" type="button" [disabled]="isLineEditorDisabled()" (click)="addServiceLine()"><i class="bi bi-plus-lg"></i> Agregar servicio</button>
+        </div>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Servicio</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let line of serviceLines; let i = index">
+              <td>
+                <select class="form-select form-select-sm" [(ngModel)]="line.itemId" [name]="'service-'+i" [disabled]="isLineEditorDisabled()">
+                  <option value="">Seleccione un servicio</option>
+                  <option *ngFor="let option of serviceOptions" [value]="option.value">{{ option.label }}</option>
+                </select>
+              </td>
+              <td><input class="form-control form-control-sm" type="number" min="1" [(ngModel)]="line.cantidad" [name]="'sc-'+i" [disabled]="isLineEditorDisabled()" /></td>
+              <td><input class="form-control form-control-sm" type="number" min="0" step="0.01" [(ngModel)]="line.precio" [name]="'sp-'+i" [disabled]="isLineEditorDisabled()" /></td>
+              <td class="text-end">${{ (line.cantidad * line.precio).toFixed(2) }}</td>
+              <td><button class="btn close" type="button" [disabled]="isLineEditorDisabled()" (click)="removeServiceLine(i)"><i class="bi bi-trash3"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="text-end m-0">Total pedido: ${{ orderTotal.toFixed(2) }}</p>
+      </div>
+
+      <div class="row m-0">
+        <div class="col">
+          <button type="button" class="btn secondary w-100" (click)="closeCreateForm()">Cancelar</button>
+        </div>
+        <div class="col">
+          <button type="submit" class="btn primary w-100" [disabled]="formMode === 'consult'">{{ saveButtonLabel }}</button>
+        </div>
+      </div>
+    </form>
+  </article>
+</section>
+
+
