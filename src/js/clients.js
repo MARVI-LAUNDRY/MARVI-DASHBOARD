@@ -46,6 +46,12 @@ let activeClientsRequestId = 0;
 let lastQueryKey = "";
 
 const normalizeSearch = (value) => (value ?? "").trim();
+const EMPTY_REFERENCE_TEXT = "Sin información";
+
+const getDisplayOrFallback = (value) => {
+    const normalized = `${value ?? ""}`.trim();
+    return normalized || EMPTY_REFERENCE_TEXT;
+};
 
 const formatDateDDMMAAAA = (value) => {
     if (!value) return "";
@@ -419,10 +425,10 @@ export async function getClients(currentPage = 1, limit = CLIENTS_LIMIT, search 
                 <th scope="row" class="text-center">
                     <input type="checkbox" class="select-checkbox" />
                 </th>
-                <td>${clientCode}</td>
-                <td>${clientName}</td>
-                <td>${clientResponse.correo ?? ""}</td>
-                <td>${clientResponse.telefono ?? ""}</td>
+                <td>${getDisplayOrFallback(clientCode)}</td>
+                <td>${getDisplayOrFallback(clientName)}</td>
+                <td>${getDisplayOrFallback(clientResponse.correo)}</td>
+                <td>${getDisplayOrFallback(clientResponse.telefono)}</td>
                 <td>${registerDate}</td>
                 <td class="text-center">
                     <button class="btn options" type="button" data-bs-toggle="dropdown">

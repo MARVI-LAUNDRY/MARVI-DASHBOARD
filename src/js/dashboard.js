@@ -1,7 +1,7 @@
 import {jwtDecode} from 'https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/+esm';
 import {loadTheme} from "./theme.js";
 import {alertConfirm, alertLoading, alertMessage, alertToast} from "./alerts.js";
-import demo from "./home.js";
+import {readyHome} from "./home.js";
 import {handleSearchInput, readyUsers} from "./users.js";
 import {readyConfiguration} from "./configuration.js";
 import {readyProducts} from "./products.js";
@@ -11,6 +11,7 @@ import {readyOrders} from "./orders.js";
 import {readyProviders} from "./providers.js";
 import {readyPurchases} from "./purchases.js";
 import {readyServices} from "./services.js";
+import {readyActividad} from "./actividad.js";
 
 const getCookie = (name) => {
     const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
@@ -59,7 +60,7 @@ const loadHash = async () => {
     });
 
     const placeholders = {
-        orders: "Buscar pedidos", purchases: "Buscar compras", clients: "Buscar clientes", providers: "Buscar proveedores", products: "Buscar productos", services: "Buscar servicios", users: "Buscar usuarios",
+        orders: "Buscar pedidos", purchases: "Buscar compras", clients: "Buscar clientes", providers: "Buscar proveedores", products: "Buscar productos", services: "Buscar servicios", users: "Buscar usuarios", actividad: "Buscar actividad",
     };
 
     if (placeholders[page]) {
@@ -77,7 +78,7 @@ const loadHash = async () => {
 
     switch (page) {
         case "home":
-            demo();
+            readyHome();
             break;
         case "orders":
             readyOrders(elements.searchInput);
@@ -96,6 +97,9 @@ const loadHash = async () => {
             break;
         case "services":
             readyServices(elements.searchInput);
+            break;
+        case "actividad":
+            readyActividad(elements.searchInput);
             break;
         case "users":
             if (currentSession.rol !== "administrador") {

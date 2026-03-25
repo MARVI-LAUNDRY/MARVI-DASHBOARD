@@ -70,6 +70,12 @@ const disabledEdit = (disabled) => {
 };
 
 const normalizeSearch = (value) => (value ?? "").trim();
+const EMPTY_REFERENCE_TEXT = "Sin información";
+
+const getDisplayOrFallback = (value) => {
+    const normalized = `${value ?? ""}`.trim();
+    return normalized || EMPTY_REFERENCE_TEXT;
+};
 
 const buildUsersQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
 
@@ -397,18 +403,21 @@ export async function getUsers(currentPage = 1, limit = USERS_LIMIT, search = ""
             usersTable.innerHTML = "";
 
             response.data.forEach((userResponse) => {
+                const fullName = [userResponse.nombre, userResponse.primer_apellido, userResponse.segundo_apellido].filter(Boolean).join(" ");
+                const registerDate = formatDateDDMMAAAA(userResponse.createdAt ?? userResponse.fecha_registro);
+
                 const tr = document.createElement("tr");
                 tr.dataset.userId = userResponse._id;
-                tr.dataset.userName = userResponse.usuario;
+                tr.dataset.userName = getDisplayOrFallback(userResponse.usuario);
                 tr.innerHTML = `
                     <th scope="row" class="text-center">
                         <input type="checkbox" class="select-checkbox" />
                     </th>
-                    <td>${userResponse.usuario}</td>
-                    <td>${[userResponse.nombre, userResponse.primer_apellido, userResponse.segundo_apellido].filter(Boolean).join(" ")}</td>
-                    <td>${userResponse.correo}</td>
-                    <td>${userResponse.rol}</td>
-                    <td>${formatDateDDMMAAAA(userResponse.createdAt ?? userResponse.fecha_registro)}</td>
+                    <td>${getDisplayOrFallback(userResponse.usuario)}</td>
+                    <td>${getDisplayOrFallback(fullName)}</td>
+                    <td>${getDisplayOrFallback(userResponse.correo)}</td>
+                    <td>${getDisplayOrFallback(userResponse.rol)}</td>
+                    <td>${getDisplayOrFallback(registerDate)}</td>
                     <td class="text-center">
                         <button class="btn options" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-three-dots-vertical"></i>

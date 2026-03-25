@@ -50,7 +50,7 @@ let activeServicesRequestId = 0;
 let lastQueryKey = "";
 
 const normalizeSearch = (value) => (value ?? "").trim();
-const EMPTY_REFERENCE_TEXT = "Sin informacion";
+const EMPTY_REFERENCE_TEXT = "Sin información";
 
 const getDisplayOrFallback = (value) => {
     const normalized = `${value ?? ""}`.trim();
@@ -505,12 +505,12 @@ export async function getServices(currentPage = 1, limit = SERVICES_LIMIT, searc
                     <input type="checkbox" class="select-checkbox" />
                 </th>
                 ${buildServiceImageCell(serviceImage, serviceCode)}
-                <td>${serviceCode}</td>
+                <td>${getDisplayOrFallback(serviceCode)}</td>
                 <td>${getDisplayOrFallback(serviceResponse.nombre)}</td>
                 <td>${getDisplayOrFallback(serviceResponse.descripcion)}</td>
                 <td>${getDisplayOrFallback(serviceResponse.unidad_medida)}</td>
                 <td>${formatCurrency(serviceResponse.precio)}</td>
-                <td>${registerDate}</td>
+                <td>${getDisplayOrFallback(registerDate)}</td>
                 <td class="text-center">
                     <button class="btn options" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-three-dots-vertical"></i>

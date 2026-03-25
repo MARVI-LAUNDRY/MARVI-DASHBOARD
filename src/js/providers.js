@@ -46,7 +46,7 @@ let lastQueryKey = "";
 
 const normalizeSearch = (value) => (value ?? "").trim();
 const buildProvidersQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
-const EMPTY_REFERENCE_TEXT = "Sin informacion";
+const EMPTY_REFERENCE_TEXT = "Sin información";
 
 const getDisplayOrFallback = (value) => {
     const normalized = `${value ?? ""}`.trim();
@@ -410,12 +410,12 @@ export async function getProviders(currentPage = 1, limit = PROVIDERS_LIMIT, sea
                 <th scope="row" class="text-center">
                     <input type="checkbox" class="select-checkbox" />
                 </th>
-                <td>${providerResponse.codigo ?? ""}</td>
+                <td>${getDisplayOrFallback(providerResponse.codigo)}</td>
                 <td>${getDisplayOrFallback(providerResponse.nombre)}</td>
                 <td>${getDisplayOrFallback(providerResponse.correo)}</td>
                 <td>${getDisplayOrFallback(providerResponse.telefono)}</td>
                 <td>${getDisplayOrFallback(providerResponse.direccion)}</td>
-                <td>${registerDate}</td>
+                <td>${getDisplayOrFallback(registerDate)}</td>
                 <td class="text-center">
                     <button class="btn options" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-three-dots-vertical"></i>

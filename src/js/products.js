@@ -51,7 +51,7 @@ let activeProductsRequestId = 0;
 let lastQueryKey = "";
 
 const normalizeSearch = (value) => (value ?? "").trim();
-const EMPTY_REFERENCE_TEXT = "Sin informacion";
+const EMPTY_REFERENCE_TEXT = "Sin información";
 
 const getDisplayOrFallback = (value) => {
     const normalized = `${value ?? ""}`.trim();
@@ -511,13 +511,13 @@ export async function getProducts(currentPage = 1, limit = PRODUCTS_LIMIT, searc
                     <input type="checkbox" class="select-checkbox" />
                 </th>
                 ${buildProductImageCell(productImage, productCode)}
-                <td>${productCode}</td>
+                <td>${getDisplayOrFallback(productCode)}</td>
                 <td>${getDisplayOrFallback(productResponse.nombre)}</td>
                 <td>${getDisplayOrFallback(productResponse.descripcion)}</td>
                 <td>${getDisplayOrFallback(productResponse.unidad_medida)}</td>
                 <td>${formatCurrency(productResponse.precio)}</td>
                 <td>${productStock}</td>
-                <td>${registerDate}</td>
+                <td>${getDisplayOrFallback(registerDate)}</td>
                 <td class="text-center">
                     <button class="btn options" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-three-dots-vertical"></i>

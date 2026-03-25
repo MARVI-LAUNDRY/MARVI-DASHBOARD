@@ -1,7 +1,7 @@
-import { alertConfirm, alertLoading, alertMessage, alertToast } from "./alerts.js";
-import { addPlaceholder, removePlaceholder } from "./tables.js";
-import { deleteApi, getApi, patchApi, postApi } from "./api.js";
-import { token } from "./dashboard.js";
+import {alertConfirm, alertLoading, alertMessage, alertToast} from "./alerts.js";
+import {addPlaceholder, removePlaceholder} from "./tables.js";
+import {deleteApi, getApi, patchApi, postApi} from "./api.js";
+import {token} from "./dashboard.js";
 
 let searchInput = null;
 
@@ -53,7 +53,7 @@ let servicesCache = [];
 
 const normalizeSearch = (value) => (value ?? "").trim();
 const buildOrdersQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
-const EMPTY_REFERENCE_TEXT = "Sin informacion";
+const EMPTY_REFERENCE_TEXT = "Sin información";
 
 const generateTimeBasedCode = (prefix) => {
     const now = new Date();
@@ -67,9 +67,14 @@ const generateTimeBasedCode = (prefix) => {
     return `${prefix}${yyyy}${mm}${dd}${hh}${mi}${ss}`;
 };
 
-const getItemsCountDisplay = (items, label) => {
+const getItemsCountDisplay = (items) => {
     const count = Array.isArray(items) ? items.length : 0;
-    return count > 0 ? String(count) : `${EMPTY_REFERENCE_TEXT} (${label})`;
+    return count > 0 ? String(count) : EMPTY_REFERENCE_TEXT;
+};
+
+const getDisplayOrFallback = (value) => {
+    const normalized = `${value ?? ""}`.trim();
+    return normalized || EMPTY_REFERENCE_TEXT;
 };
 
 const formatDateDDMMAAAA = (value) => {
@@ -131,6 +136,29 @@ const buildServiceOptions = (selectedValue = "") => {
     return `${defaultOption}${options}`;
 };
 
+const getCatalogPrice = (item, candidates) => {
+    if (!item) return 0;
+
+    for (const key of candidates) {
+        const value = Number(item[key]);
+        if (!Number.isNaN(value) && Number.isFinite(value) && value >= 0) return value;
+    }
+
+    return 0;
+};
+
+const resolveLineRegisteredPrice = (type, itemId) => {
+    if (!itemId) return 0;
+
+    if (type === "producto") {
+        const productItem = productsCache.find((product) => String(product._id) === String(itemId));
+        return getCatalogPrice(productItem, ["precio_venta", "precio", "precio_unitario", "precio_publico", "costo", "precio_compra"]);
+    }
+
+    const serviceItem = servicesCache.find((service) => String(service._id) === String(itemId));
+    return getCatalogPrice(serviceItem, ["precio", "precio_venta", "precio_unitario", "costo"]);
+};
+
 const updateOrderTotal = () => {
     const productRows = productsRows.querySelectorAll(".order-product-row");
     const serviceRows = servicesRows.querySelectorAll(".order-service-row");
@@ -152,7 +180,7 @@ const updateOrderTotal = () => {
     orderTotal.textContent = total.toFixed(2);
 };
 
-const createOrderLine = ({ type, optionsHtml, rowClass }, item = {}) => {
+const createOrderLine = ({type, optionsHtml, rowClass}, item = {}) => {
     const row = document.createElement("tr");
     row.className = rowClass;
     row.innerHTML = `
@@ -173,8 +201,17 @@ const createOrderLine = ({ type, optionsHtml, rowClass }, item = {}) => {
         </td>
     `;
 
+    const selectInput = row.querySelector(`select[data-field="${type}_id"]`);
+    const priceInput = row.querySelector('[data-field="precio_unitario"]');
+
     row.querySelectorAll('[data-field="cantidad"], [data-field="precio_unitario"]').forEach((input) => {
         input.addEventListener("input", updateOrderTotal);
+    });
+
+    selectInput.addEventListener("change", () => {
+        const catalogPrice = resolveLineRegisteredPrice(type, selectInput.value);
+        priceInput.value = catalogPrice.toFixed(2);
+        updateOrderTotal();
     });
 
     row.querySelector('[data-action="remove-line"]').addEventListener("click", () => {
@@ -193,7 +230,7 @@ const createOrderLine = ({ type, optionsHtml, rowClass }, item = {}) => {
     return row;
 };
 
-const renderOrderLines = ({ products = [], services = [] } = {}) => {
+const renderOrderLines = ({products = [], services = []} = {}) => {
     productsRows.innerHTML = "";
     servicesRows.innerHTML = "";
 
@@ -201,11 +238,15 @@ const renderOrderLines = ({ products = [], services = [] } = {}) => {
     const serviceLines = services.length > 0 ? services : [{}];
 
     productLines.forEach((item) => {
-        productsRows.appendChild(createOrderLine({ type: "producto", optionsHtml: buildProductOptions, rowClass: "order-product-row" }, item));
+        productsRows.appendChild(createOrderLine({
+            type: "producto", optionsHtml: buildProductOptions, rowClass: "order-product-row"
+        }, item));
     });
 
     serviceLines.forEach((item) => {
-        servicesRows.appendChild(createOrderLine({ type: "servicio", optionsHtml: buildServiceOptions, rowClass: "order-service-row" }, item));
+        servicesRows.appendChild(createOrderLine({
+            type: "servicio", optionsHtml: buildServiceOptions, rowClass: "order-service-row"
+        }, item));
     });
 
     updateOrderTotal();
@@ -240,10 +281,7 @@ const getOrderPayload = () => {
         .filter((item) => item.servicio_id && item.cantidad > 0 && item.precio_unitario >= 0);
 
     return {
-        codigo: code.value,
-        cliente_id: client.value,
-        productos: products,
-        servicios: services,
+        codigo: code.value, cliente_id: client.value, productos: products, servicios: services,
     };
 };
 
@@ -261,16 +299,12 @@ const resolveClientDisplay = (orderResponse) => {
         if (clientCode) return clientCode;
     }
 
-    return orderResponse?.cliente_id ?? "";
+    return getDisplayOrFallback(orderResponse?.cliente_id);
 };
 
 const loadCatalogs = async () => {
     try {
-        const [clientsResponse, productsResponse, servicesResponse] = await Promise.all([
-            getApi("clients?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token),
-            getApi("products?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token),
-            getApi("services?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token),
-        ]);
+        const [clientsResponse, productsResponse, servicesResponse] = await Promise.all([getApi("clients?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token), getApi("products?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token), getApi("services?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token),]);
 
         clientsCache = clientsResponse?.success ? (clientsResponse.data ?? []) : [];
         productsCache = productsResponse?.success ? (productsResponse.data ?? []) : [];
@@ -290,14 +324,14 @@ const loadCatalogs = async () => {
             precio_unitario: Number(row.querySelector('[data-field="precio_unitario"]').value),
         }));
 
-        renderOrderLines({ products: currentProducts, services: currentServices });
+        renderOrderLines({products: currentProducts, services: currentServices});
     } catch (error) {
         console.error(error);
         alertMessage("Error de conexion", "No se pudo cargar catalogos para pedidos", "error", 5000);
     }
 };
 
-const refreshOrders = ({ currentPage = page, search = activeSearch, force = false } = {}) => {
+const refreshOrders = ({currentPage = page, search = activeSearch, force = false} = {}) => {
     page = currentPage;
     activeSearch = normalizeSearch(search);
     return getOrders(page, ORDERS_LIMIT, activeSearch, force);
@@ -338,14 +372,14 @@ export const actionsOrder = () => {
                             precio_unitario: item.precio_unitario ?? 0,
                         }));
 
-                        renderOrderLines({ products, services });
+                        renderOrderLines({products, services});
 
                         newOrderBtn.click();
                         alertToast("Pedido cargado correctamente", false, "success", "bottom-start");
                         disabledEdit(true);
                     } else {
                         alertMessage(response?.message ?? "No se pudo cargar el pedido", response?.error ?? "", "error", 5000)
-                            .finally(() => refreshOrders({ currentPage: page, search: searchInput.value, force: true }));
+                            .finally(() => refreshOrders({currentPage: page, search: searchInput.value, force: true}));
                     }
                 } catch (error) {
                     console.error(error);
@@ -368,11 +402,13 @@ export const actionsOrder = () => {
 
                         if (response.success) {
                             alertToast(response.message, false, "success", "bottom-end").finally(() => {
-                                refreshOrders({ currentPage: 1, search: searchInput.value, force: true });
+                                refreshOrders({currentPage: 1, search: searchInput.value, force: true});
                             });
                         } else {
                             alertMessage(response.message, response.error, "error", 5000)
-                                .finally(() => refreshOrders({ currentPage: page, search: searchInput.value, force: true }));
+                                .finally(() => refreshOrders({
+                                    currentPage: page, search: searchInput.value, force: true
+                                }));
                         }
                     } catch (error) {
                         console.error(error);
@@ -397,8 +433,7 @@ export const actionsOrder = () => {
             .map((checkbox) => {
                 const tr = checkbox.closest("tr");
                 return {
-                    id: tr.dataset.orderId,
-                    code: tr.dataset.orderCode ?? tr.children[1].textContent,
+                    id: tr.dataset.orderId, code: tr.dataset.orderCode ?? tr.children[1].textContent,
                 };
             });
 
@@ -414,15 +449,14 @@ export const actionsOrder = () => {
                 for (const selectedOrder of selectedOrders) {
                     const response = await deleteApi(`orders/${selectedOrder.id}`, token);
 
-                    if (response.success) deleted++;
-                    else {
+                    if (response.success) deleted++; else {
                         alertMessage(response.message, response.error, "error", 5000);
                         notDeleted++;
                     }
                 }
 
                 alertToast(`Pedidos eliminados: ${deleted}, Pedidos no eliminados: ${notDeleted}`, false, "success", "bottom-end");
-                refreshOrders({ currentPage: 1, search: searchInput.value, force: true });
+                refreshOrders({currentPage: 1, search: searchInput.value, force: true});
             } catch (error) {
                 console.error(error);
                 alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
@@ -436,12 +470,12 @@ export const handleSearchInput = (event) => {
 
     if (event.type === "input") {
         if (searchValue !== "") return;
-        refreshOrders({ currentPage: 1, search: "" });
+        refreshOrders({currentPage: 1, search: ""});
         return;
     }
 
     if (event.type === "keydown" && event.key !== "Enter" && event.key !== "NumpadEnter") return;
-    refreshOrders({ currentPage: 1, search: searchValue });
+    refreshOrders({currentPage: 1, search: searchValue});
 };
 
 export const readyOrders = (searchBar) => {
@@ -484,24 +518,28 @@ export const readyOrders = (searchBar) => {
     orderBtn.onclick = () => {
         order = order === "asc" ? "desc" : "asc";
         orderBtn.innerHTML = `<i class="bi ${order === "asc" ? "bi-arrow-up" : "bi-arrow-down"}"></i> ${order === "asc" ? "Ascendente" : "Descendente"}`;
-        refreshOrders({ currentPage: 1, search: searchInput.value });
+        refreshOrders({currentPage: 1, search: searchInput.value});
     };
 
     filter.forEach((button) => {
         button.onclick = () => {
             column = button.dataset.filter;
             filterBtn.innerHTML = `<i class="bi bi-filter"></i> ${button.textContent}`;
-            refreshOrders({ currentPage: 1, search: searchInput.value });
+            refreshOrders({currentPage: 1, search: searchInput.value});
         };
     });
 
     addProductLineBtn.onclick = () => {
-        productsRows.appendChild(createOrderLine({ type: "producto", optionsHtml: buildProductOptions, rowClass: "order-product-row" }));
+        productsRows.appendChild(createOrderLine({
+            type: "producto", optionsHtml: buildProductOptions, rowClass: "order-product-row"
+        }));
         updateOrderTotal();
     };
 
     addServiceLineBtn.onclick = () => {
-        servicesRows.appendChild(createOrderLine({ type: "servicio", optionsHtml: buildServiceOptions, rowClass: "order-service-row" }));
+        servicesRows.appendChild(createOrderLine({
+            type: "servicio", optionsHtml: buildServiceOptions, rowClass: "order-service-row"
+        }));
         updateOrderTotal();
     };
 
@@ -579,7 +617,7 @@ export const readyOrders = (searchBar) => {
                     return;
                 }
 
-                response = await patchApi(`orders/${selectedOrderId}`, { estado: orderStatus }, token);
+                response = await patchApi(`orders/${selectedOrderId}`, {estado: orderStatus}, token);
             } else {
                 response = await postApi("orders", data, token);
             }
@@ -592,7 +630,7 @@ export const readyOrders = (searchBar) => {
                     closeBtn.click();
                     searchInput.value = "";
                     resetOrderFormState();
-                    refreshOrders({ currentPage: 1, search: "", force: true });
+                    refreshOrders({currentPage: 1, search: "", force: true});
                 });
             } else {
                 alertMessage(response.message, response.error, "error", 5000).finally(() => {
@@ -619,30 +657,30 @@ export const readyOrders = (searchBar) => {
     };
 
     startBtn.onclick = () => {
-        refreshOrders({ currentPage: 1, search: searchInput.value });
+        refreshOrders({currentPage: 1, search: searchInput.value});
     };
 
     prevBtn.onclick = () => {
         const nextPage = page > 1 ? page - 1 : 1;
-        refreshOrders({ currentPage: nextPage, search: searchInput.value });
+        refreshOrders({currentPage: nextPage, search: searchInput.value});
     };
 
     nextBtn.onclick = () => {
         const totalPages = Number(totalPagesNum.textContent) || 1;
         const nextPage = page < totalPages ? page + 1 : totalPages;
-        refreshOrders({ currentPage: nextPage, search: searchInput.value });
+        refreshOrders({currentPage: nextPage, search: searchInput.value});
     };
 
     endBtn.onclick = () => {
         const totalPages = Number(totalPagesNum.textContent) || 1;
-        refreshOrders({ currentPage: totalPages, search: searchInput.value });
+        refreshOrders({currentPage: totalPages, search: searchInput.value});
     };
 
     fillClientOptions();
     renderOrderLines();
     loadCatalogs();
     resetOrderFormState();
-    refreshOrders({ currentPage: 1, search: "", force: true });
+    refreshOrders({currentPage: 1, search: "", force: true});
 };
 
 export async function getOrders(currentPage = 1, limit = ORDERS_LIMIT, search = "", force = false) {
@@ -658,11 +696,7 @@ export async function getOrders(currentPage = 1, limit = ORDERS_LIMIT, search = 
 
     try {
         const params = new URLSearchParams({
-            page: String(currentPage),
-            limit: String(limit),
-            search: normalizedSearch,
-            sortBy: column,
-            sortOrder: order,
+            page: String(currentPage), limit: String(limit), search: normalizedSearch, sortBy: column, sortOrder: order,
         });
 
         const response = await getApi(`orders?${params.toString()}`, token);
@@ -675,8 +709,8 @@ export async function getOrders(currentPage = 1, limit = ORDERS_LIMIT, search = 
 
         list.forEach((orderResponse) => {
             const orderId = orderResponse._id ?? orderResponse.codigo;
-            const productsDisplay = getItemsCountDisplay(orderResponse.productos, "sin productos");
-            const servicesDisplay = getItemsCountDisplay(orderResponse.servicios, "sin servicios");
+            const productsDisplay = getItemsCountDisplay(orderResponse.productos);
+            const servicesDisplay = getItemsCountDisplay(orderResponse.servicios);
             const registerDate = formatDateDDMMAAAA(orderResponse.createdAt ?? orderResponse.fecha_registro);
 
             const tr = document.createElement("tr");
@@ -686,13 +720,13 @@ export async function getOrders(currentPage = 1, limit = ORDERS_LIMIT, search = 
                 <th scope="row" class="text-center">
                     <input type="checkbox" class="select-checkbox" />
                 </th>
-                <td>${orderResponse.codigo ?? ""}</td>
+                <td>${getDisplayOrFallback(orderResponse.codigo)}</td>
                 <td>${resolveClientDisplay(orderResponse)}</td>
                 <td>${productsDisplay}</td>
                 <td>${servicesDisplay}</td>
                 <td>$${Number(orderResponse.total ?? 0).toFixed(2)}</td>
-                <td>${orderResponse.estado ?? ""}</td>
-                <td>${registerDate}</td>
+                <td>${getDisplayOrFallback(orderResponse.estado)}</td>
+                <td>${getDisplayOrFallback(registerDate)}</td>
                 <td class="text-center">
                     <button class="btn options" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-three-dots-vertical"></i>
