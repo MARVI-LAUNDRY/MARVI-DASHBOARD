@@ -87,6 +87,7 @@ export const readyConfiguration = () => {
     name.value = currentSession.nombre;
     firstSurname.value = currentSession.primer_apellido;
     secondSurname.value = currentSession.segundo_apellido;
+    role.value = currentSession.rol
     email.value = currentSession.correo;
     oldPassword.value = '********';
     newPassword.value = '********';
