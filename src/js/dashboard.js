@@ -1,7 +1,7 @@
 import {jwtDecode} from 'https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/+esm';
 import {loadTheme} from "./theme.js";
 import {alertConfirm, alertLoading, alertMessage, alertToast} from "./alerts.js";
-import demo from "./home.js";
+import {readyHome} from "./home.js";
 import {handleSearchInput, readyUsers} from "./users.js";
 import {readyConfiguration} from "./configuration.js";
 import {readyProducts} from "./products.js";
@@ -11,6 +11,7 @@ import {readyOrders} from "./orders.js";
 import {readyProviders} from "./providers.js";
 import {readyPurchases} from "./purchases.js";
 import {readyServices} from "./services.js";
+import {readyActivity} from "./activity.js";
 
 const getCookie = (name) => {
     const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
@@ -59,7 +60,7 @@ const loadHash = async () => {
     });
 
     const placeholders = {
-        orders: "Buscar pedidos", purchases: "Buscar compras", clients: "Buscar clientes", providers: "Buscar proveedores", products: "Buscar productos", services: "Buscar servicios", users: "Buscar usuarios",
+        orders: "Buscar pedidos", purchases: "Buscar compras", clients: "Buscar clientes", providers: "Buscar proveedores", products: "Buscar productos", services: "Buscar servicios", users: "Buscar usuarios", activity: "Buscar activity",
     };
 
     if (placeholders[page]) {
@@ -77,18 +78,33 @@ const loadHash = async () => {
 
     switch (page) {
         case "home":
-            demo();
+            readyHome();
             break;
         case "orders":
             readyOrders(elements.searchInput);
             break;
         case "purchases":
+            if (currentSession.rol === "invitado") {
+                alertMessage("Acceso denegado", "No tienes permisos para acceder a esta página", "error", 5000)
+                    .finally(() => window.history.back());
+                break;
+            }
             readyPurchases(elements.searchInput);
             break;
         case "clients":
+            if (currentSession.rol === "invitado") {
+                alertMessage("Acceso denegado", "No tienes permisos para acceder a esta página", "error", 5000)
+                    .finally(() => window.history.back());
+                break;
+            }
             readyClients(elements.searchInput);
             break;
         case "providers":
+            if (currentSession.rol === "invitado") {
+                alertMessage("Acceso denegado", "No tienes permisos para acceder a esta página", "error", 5000)
+                    .finally(() => window.history.back());
+                break;
+            }
             readyProviders(elements.searchInput);
             break;
         case "products":
@@ -96,6 +112,14 @@ const loadHash = async () => {
             break;
         case "services":
             readyServices(elements.searchInput);
+            break;
+        case "activity":
+            if (currentSession.rol === "invitado") {
+                alertMessage("Acceso denegado", "No tienes permisos para acceder a esta página", "error", 5000)
+                    .finally(() => window.history.back());
+                break;
+            }
+            readyActivity(elements.searchInput);
             break;
         case "users":
             if (currentSession.rol !== "administrador") {
@@ -124,9 +148,12 @@ const ready = async () => {
 
     if (currentSession.rol !== "administrador") {
         document.getElementById("users").style.display = "none";
+    } else if (currentSession.rol === "invitado") {
+        document.getElementById("users").style.display = "none";
         document.getElementById("clients").style.display = "none";
         document.getElementById("providers").style.display = "none";
         document.getElementById("purchases").style.display = "none";
+        document.getElementById("activity").style.display = "none";
     }
 
     elements.userProfile.src = currentSession.imagen_perfil || "https://marvi-api.onrender.com/pictures/profile/0.jpg";

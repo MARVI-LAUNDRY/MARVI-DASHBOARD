@@ -1,7 +1,7 @@
-import { alertConfirm, alertLoading, alertMessage, alertToast } from "./alerts.js";
-import { addPlaceholder, removePlaceholder } from "./tables.js";
-import { deleteApi, getApi, postApi, putApi } from "./api.js";
-import { token } from "./dashboard.js";
+import {alertConfirm, alertLoading, alertMessage, alertToast} from "./alerts.js";
+import {addPlaceholder, removePlaceholder} from "./tables.js";
+import {deleteApi, getApi, postApi, putApi} from "./api.js";
+import {token} from "./dashboard.js";
 
 let searchInput = null;
 
@@ -49,7 +49,7 @@ let productsCache = [];
 
 const normalizeSearch = (value) => (value ?? "").trim();
 const buildPurchasesQueryKey = (currentPage, limit, search) => `${currentPage}|${limit}|${search}|${column}|${order}`;
-const EMPTY_REFERENCE_TEXT = "Sin informacion";
+const EMPTY_REFERENCE_TEXT = "Sin información";
 
 const generateTimeBasedCode = (prefix) => {
     const now = new Date();
@@ -63,14 +63,14 @@ const generateTimeBasedCode = (prefix) => {
     return `${prefix}${yyyy}${mm}${dd}${hh}${mi}${ss}`;
 };
 
-const getItemsCountDisplay = (items, label) => {
+const getItemsCountDisplay = (items) => {
     const count = Array.isArray(items) ? items.length : 0;
-    return count > 0 ? String(count) : `${EMPTY_REFERENCE_TEXT} (${label})`;
+    return count > 0 ? String(count) : EMPTY_REFERENCE_TEXT;
 };
 
-const getDisplayOrFallback = (value, label) => {
+const getDisplayOrFallback = (value) => {
     const normalized = `${value ?? ""}`.trim();
-    return normalized || `${EMPTY_REFERENCE_TEXT} (${label})`;
+    return normalized || EMPTY_REFERENCE_TEXT;
 };
 
 const formatDateDDMMAAAA = (value) => {
@@ -117,6 +117,24 @@ const buildProductOptions = (selectedValue = "") => {
     return `${defaultOption}${options}`;
 };
 
+const getCatalogPrice = (item, candidates) => {
+    if (!item) return 0;
+
+    for (const key of candidates) {
+        const value = Number(item[key]);
+        if (!Number.isNaN(value) && Number.isFinite(value) && value >= 0) return value;
+    }
+
+    return 0;
+};
+
+const resolveProductRegisteredPrice = (productId) => {
+    if (!productId) return 0;
+
+    const productItem = productsCache.find((product) => String(product._id) === String(productId));
+    return getCatalogPrice(productItem, ["precio_compra", "costo", "precio_costo", "precio_unitario", "precio"]);
+};
+
 const updatePurchaseTotal = () => {
     const rows = productsRows.querySelectorAll(".purchase-product-row");
     let total = 0;
@@ -158,8 +176,17 @@ const createProductLine = (item = {}) => {
         </td>
     `;
 
+    const productSelect = row.querySelector('[data-field="producto_id"]');
+    const priceInput = row.querySelector('[data-field="precio_unitario"]');
+
     row.querySelectorAll('[data-field="cantidad"], [data-field="precio_unitario"]').forEach((input) => {
         input.addEventListener("input", updatePurchaseTotal);
+    });
+
+    productSelect.addEventListener("change", () => {
+        const catalogPrice = resolveProductRegisteredPrice(productSelect.value);
+        priceInput.value = catalogPrice.toFixed(2);
+        updatePurchaseTotal();
     });
 
     row.querySelector('[data-action="remove-line"]').addEventListener("click", () => {
@@ -205,9 +232,7 @@ const getPurchasePayload = () => {
         .filter((productLine) => productLine.producto_id && productLine.cantidad > 0 && productLine.precio_unitario >= 0);
 
     return {
-        codigo: code.value,
-        proveedor_id: supplier.value,
-        productos: productLines,
+        codigo: code.value, proveedor_id: supplier.value, productos: productLines,
     };
 };
 
@@ -225,15 +250,12 @@ const resolveSupplierDisplay = (purchaseResponse) => {
         if (supplierCode) return supplierCode;
     }
 
-    return getDisplayOrFallback(purchaseResponse?.proveedor_id, "sin proveedor");
+    return getDisplayOrFallback(purchaseResponse?.proveedor_id);
 };
 
 const loadCatalogs = async () => {
     try {
-        const [suppliersResponse, productsResponse] = await Promise.all([
-            getApi("suppliers?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token),
-            getApi("products?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token),
-        ]);
+        const [suppliersResponse, productsResponse] = await Promise.all([getApi("suppliers?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token), getApi("products?page=1&limit=100&search=&sortBy=nombre&sortOrder=asc", token),]);
 
         suppliersCache = suppliersResponse?.success ? (suppliersResponse.data ?? []) : [];
         productsCache = productsResponse?.success ? (productsResponse.data ?? []) : [];
@@ -251,7 +273,7 @@ const loadCatalogs = async () => {
     }
 };
 
-const refreshPurchases = ({ currentPage = page, search = activeSearch, force = false } = {}) => {
+const refreshPurchases = ({currentPage = page, search = activeSearch, force = false} = {}) => {
     page = currentPage;
     activeSearch = normalizeSearch(search);
     return getPurchases(page, PURCHASES_LIMIT, activeSearch, force);
@@ -291,7 +313,9 @@ export const actionsPurchase = () => {
                         disabledEdit(true);
                     } else {
                         alertMessage(response?.message ?? "No se pudo cargar la compra", response?.error ?? "", "error", 5000)
-                            .finally(() => refreshPurchases({ currentPage: page, search: searchInput.value, force: true }));
+                            .finally(() => refreshPurchases({
+                                currentPage: page, search: searchInput.value, force: true
+                            }));
                     }
                 } catch (error) {
                     console.error(error);
@@ -314,11 +338,13 @@ export const actionsPurchase = () => {
 
                         if (response.success) {
                             alertToast(response.message, false, "success", "bottom-end").finally(() => {
-                                refreshPurchases({ currentPage: 1, search: searchInput.value, force: true });
+                                refreshPurchases({currentPage: 1, search: searchInput.value, force: true});
                             });
                         } else {
                             alertMessage(response.message, response.error, "error", 5000)
-                                .finally(() => refreshPurchases({ currentPage: page, search: searchInput.value, force: true }));
+                                .finally(() => refreshPurchases({
+                                    currentPage: page, search: searchInput.value, force: true
+                                }));
                         }
                     } catch (error) {
                         console.error(error);
@@ -343,8 +369,7 @@ export const actionsPurchase = () => {
             .map((checkbox) => {
                 const tr = checkbox.closest("tr");
                 return {
-                    id: tr.dataset.purchaseId,
-                    code: tr.dataset.purchaseCode ?? tr.children[1].textContent,
+                    id: tr.dataset.purchaseId, code: tr.dataset.purchaseCode ?? tr.children[1].textContent,
                 };
             });
 
@@ -360,15 +385,14 @@ export const actionsPurchase = () => {
                 for (const selectedPurchase of selectedPurchases) {
                     const response = await deleteApi(`purchases/${selectedPurchase.id}`, token);
 
-                    if (response.success) purchasesDeleted++;
-                    else {
+                    if (response.success) purchasesDeleted++; else {
                         alertMessage(response.message, response.error, "error", 5000);
                         purchasesNotDeleted++;
                     }
                 }
 
                 alertToast(`Compras eliminadas: ${purchasesDeleted}, Compras no eliminadas: ${purchasesNotDeleted}`, false, "success", "bottom-end");
-                refreshPurchases({ currentPage: 1, search: searchInput.value, force: true });
+                refreshPurchases({currentPage: 1, search: searchInput.value, force: true});
             } catch (error) {
                 console.error(error);
                 alertMessage("Error de conexion", "No se pudo conectar con el servidor", "error", 5000);
@@ -382,13 +406,13 @@ export const handleSearchInput = (event) => {
 
     if (event.type === "input") {
         if (searchValue !== "") return;
-        refreshPurchases({ currentPage: 1, search: "" });
+        refreshPurchases({currentPage: 1, search: ""});
         return;
     }
 
     if (event.type === "keydown" && event.key !== "Enter" && event.key !== "NumpadEnter") return;
 
-    refreshPurchases({ currentPage: 1, search: searchValue });
+    refreshPurchases({currentPage: 1, search: searchValue});
 };
 
 export const readyPurchases = (searchBar) => {
@@ -428,14 +452,14 @@ export const readyPurchases = (searchBar) => {
     orderBtn.onclick = () => {
         order = order === "asc" ? "desc" : "asc";
         orderBtn.innerHTML = `<i class="bi ${order === "asc" ? "bi-arrow-up" : "bi-arrow-down"}"></i> ${order === "asc" ? "Ascendente" : "Descendente"}`;
-        refreshPurchases({ currentPage: 1, search: searchInput.value });
+        refreshPurchases({currentPage: 1, search: searchInput.value});
     };
 
     filter.forEach((button) => {
         button.onclick = () => {
             column = button.dataset.filter;
             filterBtn.innerHTML = `<i class="bi bi-filter"></i> ${button.textContent}`;
-            refreshPurchases({ currentPage: 1, search: searchInput.value });
+            refreshPurchases({currentPage: 1, search: searchInput.value});
         };
     });
 
@@ -503,7 +527,7 @@ export const readyPurchases = (searchBar) => {
                     closeBtn.click();
                     searchInput.value = "";
                     resetPurchaseFormState();
-                    refreshPurchases({ currentPage: 1, search: "", force: true });
+                    refreshPurchases({currentPage: 1, search: "", force: true});
                 });
             } else {
                 alertMessage(response.message, response.error, "error", 5000).finally(() => {
@@ -530,30 +554,30 @@ export const readyPurchases = (searchBar) => {
     };
 
     startBtn.onclick = () => {
-        refreshPurchases({ currentPage: 1, search: searchInput.value });
+        refreshPurchases({currentPage: 1, search: searchInput.value});
     };
 
     prevBtn.onclick = () => {
         const nextPage = page > 1 ? page - 1 : 1;
-        refreshPurchases({ currentPage: nextPage, search: searchInput.value });
+        refreshPurchases({currentPage: nextPage, search: searchInput.value});
     };
 
     nextBtn.onclick = () => {
         const totalPages = Number(totalPagesNum.textContent) || 1;
         const nextPage = page < totalPages ? page + 1 : totalPages;
-        refreshPurchases({ currentPage: nextPage, search: searchInput.value });
+        refreshPurchases({currentPage: nextPage, search: searchInput.value});
     };
 
     endBtn.onclick = () => {
         const totalPages = Number(totalPagesNum.textContent) || 1;
-        refreshPurchases({ currentPage: totalPages, search: searchInput.value });
+        refreshPurchases({currentPage: totalPages, search: searchInput.value});
     };
 
     fillSupplierOptions();
     renderProductLines();
     loadCatalogs();
     resetPurchaseFormState();
-    refreshPurchases({ currentPage: 1, search: "", force: true });
+    refreshPurchases({currentPage: 1, search: "", force: true});
 };
 
 export async function getPurchases(currentPage = 1, limit = PURCHASES_LIMIT, search = "", force = false) {
@@ -569,11 +593,7 @@ export async function getPurchases(currentPage = 1, limit = PURCHASES_LIMIT, sea
 
     try {
         const params = new URLSearchParams({
-            page: String(currentPage),
-            limit: String(limit),
-            search: normalizedSearch,
-            sortBy: column,
-            sortOrder: order,
+            page: String(currentPage), limit: String(limit), search: normalizedSearch, sortBy: column, sortOrder: order,
         });
 
         const response = await getApi(`purchases?${params.toString()}`, token);
@@ -586,7 +606,7 @@ export async function getPurchases(currentPage = 1, limit = PURCHASES_LIMIT, sea
 
         list.forEach((purchaseResponse) => {
             const purchaseId = purchaseResponse._id ?? purchaseResponse.codigo;
-            const productsDisplay = getItemsCountDisplay(purchaseResponse.productos, "sin productos");
+            const productsDisplay = getItemsCountDisplay(purchaseResponse.productos);
             const registerDate = formatDateDDMMAAAA(purchaseResponse.createdAt ?? purchaseResponse.fecha_registro);
 
             const tr = document.createElement("tr");
@@ -596,11 +616,11 @@ export async function getPurchases(currentPage = 1, limit = PURCHASES_LIMIT, sea
                 <th scope="row" class="text-center">
                     <input type="checkbox" class="select-checkbox" />
                 </th>
-                <td>${purchaseResponse.codigo ?? ""}</td>
+                <td>${getDisplayOrFallback(purchaseResponse.codigo)}</td>
                 <td>${resolveSupplierDisplay(purchaseResponse)}</td>
                 <td>${productsDisplay}</td>
                 <td>$${Number(purchaseResponse.total ?? 0).toFixed(2)}</td>
-                <td>${registerDate}</td>
+                <td>${getDisplayOrFallback(registerDate)}</td>
                 <td class="text-center">
                     <button class="btn options" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-three-dots-vertical"></i>

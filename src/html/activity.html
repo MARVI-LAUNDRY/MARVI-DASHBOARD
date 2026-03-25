@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Actividad</title>
+    <!-- Estilos de bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>
+    <!-- Iconos de bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <!-- Estilo propio -->
+    <link rel="stylesheet" href="../css/tables.css"/>
+</head>
+
+<body>
+<div class="header">
+    <p>Bitácora de actividad</p>
+    <div class="d-flex gap-3">
+        <button class="btn filter" id="filter" data-bs-toggle="dropdown" title="Filtros de la tabla"><i
+                class="bi bi-filter"></i> Filtros
+        </button>
+        <ul class="dropdown-menu">
+            <li>
+                <button class="dropdown-item" data-filter="usuario_nombre"><i class="bi bi-filter-left"></i> Usuario
+                </button>
+            </li>
+            <li>
+                <button class="dropdown-item" data-filter="accion"><i class="bi bi-filter-left"></i> Acción</button>
+            </li>
+            <li>
+                <button class="dropdown-item" data-filter="entidad"><i class="bi bi-filter-left"></i> Entidad</button>
+            </li>
+            <li>
+                <button class="dropdown-item" data-filter="entidad_codigo"><i class="bi bi-filter-left"></i> Código
+                </button>
+            </li>
+            <li>
+                <button class="dropdown-item" data-filter="fecha_registro"><i class="bi bi-filter-left"></i> Fecha
+                </button>
+            </li>
+        </ul>
+
+        <button class="btn filter" id="order" title="Ordenar tabla"><i class="bi bi-arrow-down-up"></i> Orden</button>
+    </div>
+</div>
+
+<div class="table-container position-relative" id="tableContainer">
+    <div class="table-expand">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th scope="col">Usuario</th>
+                <th scope="col">Acción</th>
+                <th scope="col">Entidad</th>
+                <th scope="col">Código</th>
+                <th scope="col">Fecha</th>
+                <th scope="col" class="text-center"><i class="bi bi-caret-down-fill"></i></th>
+            </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <p>Total de filas: <span id="rowsNum">0</span></p>
+        <div class="d-flex gap-3 align-items-center">
+            <p>Pagina <span id="currentPageNum">1</span> de <span id="totalPagesNum">1</span></p>
+            <button class="btn filter" id="start" disabled><i class="bi bi-chevron-double-left"></i></button>
+            <button class="btn filter" id="prev" disabled><i class="bi bi-chevron-left"></i></button>
+            <button class="btn filter" id="next" disabled><i class="bi bi-chevron-right"></i></button>
+            <button class="btn filter" id="end" disabled><i class="bi bi-chevron-double-right"></i></button>
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas form-basic offcanvas-end" data-bs-backdrop="static" tabindex="-1" id="offcanvasActivityDetail"
+     aria-labelledby="offcanvasActivityDetailLabel">
+    <div class="offcanvas-header d-flex justify-content-between">
+        <button type="button" class="btn close" data-bs-dismiss="offcanvas" aria-label="close"><i
+                class="bi bi-x-lg"></i></button>
+        <p class="offcanvas-title" id="offcanvasActivityDetailLabel">Detalle de actividad</p>
+        <span></span>
+    </div>
+    <div class="offcanvas-body">
+        <div id="detailBody" class="d-flex flex-column gap-2">
+            <div class="row">
+                <div class="col">
+                    <label for="detailUserName" class="form-label">Usuario</label>
+                    <input id="detailUserName" class="form-control" type="text" readonly/>
+                </div>
+                <div class="col">
+                    <label for="detailUserRole" class="form-label">Rol</label>
+                    <input id="detailUserRole" class="form-control" type="text" readonly/>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label for="detailAction" class="form-label">Acción</label>
+                    <input id="detailAction" class="form-control" type="text" readonly/>
+                </div>
+                <div class="col">
+                    <label for="detailEntity" class="form-label">Entidad</label>
+                    <input id="detailEntity" class="form-control" type="text" readonly/>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label for="detailEntityId" class="form-label">Entidad ID</label>
+                    <input id="detailEntityId" class="form-control" type="text" readonly/>
+                </div>
+                <div class="col">
+                    <label for="detailEntityCode" class="form-label">Entidad código</label>
+                    <input id="detailEntityCode" class="form-control" type="text" readonly/>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col">
+                    <label for="detailIp" class="form-label">IP</label>
+                    <input id="detailIp" class="form-control" type="text" readonly/>
+                </div>
+                <div class="col">
+                    <label for="detailDate" class="form-label">Fecha</label>
+                    <input id="detailDate" class="form-control" type="text" readonly/>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col">
+                    <label for="detailUserAgent" class="form-label">Agente</label>
+                    <textarea id="detailUserAgent" class="form-control" rows="2" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+        integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+        crossorigin="anonymous"></script>
+</body>
+</html>
+
+
+
+

@@ -1,73 +1,143 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Inicio</title>
-        <!-- Estilos de bootstrap -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
-        <!-- Iconos de bootstrap -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-        <!-- Estilo propio -->
-        <link rel="stylesheet" href="../css/inicio.css" />
-    </head>
-    <body>
-        <div class="row statistics">
-            <div class="col">
-                <i class="icon bi bi-journal-text"></i>
-                <div class="content">
-                    <p>Total de pedidos</p>
-                    <div class="info">
-                        <p><span>45</span></p>
-                        <small class="up"><i class="bi bi-arrow-up"></i> 12%</small>
-                    </div>
-                </div>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Inicio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/home.css"/>
+</head>
+<body>
+<section class="home-page">
+    <div class="home-header">
+        <div>
+            <h1><b><i class="bi bi-graph-up-arrow"></i> Consulta tus indicadores</b></h1>
+            <p>Consulta indicadores por rango de fecha, agrupados por día o mes.</p>
+        </div>
+        <div class="home-filters">
+            <div class="input-label">
+                <label for="homeFrom">Desde</label>
+                <input type="date" id="homeFrom" class="form-control"/>
             </div>
-            <div class="col">
-                <i class="icon bi bi-person-add"></i>
-                <div class="content">
-                    <p>Clientes nuevos</p>
-                    <div class="info">
-                        <p><span>42</span></p>
-                        <small class="up"><i class="bi bi-arrow-up"></i> 22%</small>
-                    </div>
-                </div>
+            <div class="input-label">
+                <label for="homeTo">Hasta</label>
+                <input type="date" id="homeTo" class="form-control"/>
             </div>
-            <div class="col">
-                <i class="icon bi bi-wallet2"></i>
-                <div class="content">
-                    <p>Total de ingresos</p>
-                    <div class="info">
-                        <p>$<span>12,132</span></p>
-                        <small class="down"><i class="bi bi-arrow-down"></i> 35%</small>
-                    </div>
+            <div class="input-label">
+                <label for="homeGroup">Agrupación</label>
+                <select id="homeGroup" class="form-select">
+                    <option value="day">Por dia</option>
+                    <option value="month">Por mes</option>
+                </select>
+            </div>
+            <div class="input-label">
+                <label for="homeLimit">Limite</label>
+                <input type="number" id="homeLimit" class="form-control" min="1" max="365" value="31"/>
+            </div>
+            <button class="btn primary" id="homeApplyBtn"><i class="bi bi-search"></i> Consultar</button>
+        </div>
+    </div>
+
+    <div class="home-range" id="homeRange">Rango actual: -</div>
+
+    <div class="row statistics home-kpis">
+        <div class="col">
+            <i class="icon bi bi-cash-stack"></i>
+            <div class="content">
+                <b>Ingresos totales</b>
+                <div class="info">
+                    <p>$<span id="kpiIngresos">0.00</span></p>
                 </div>
             </div>
         </div>
-
-        <div class="row graphics">
-            <div class="col">
-                <div class="content">
-                    <p>Pedidos por periodo</p>
-                    <div class="info">
-                        <p><span>1,200</span></p>
-                        <small class="up"><i class="bi bi-arrow-up"></i> 5%</small>
-                    </div>
-                    <canvas id="areaChart"></canvas>
-                </div>
-            </div>
-            <div class="col">
-                <div class="content">
-                    <p>Ingresos por periodo</p>
-                    <div class="info">
-                        <p>$<span>5,600</span></p>
-                        <small class="up"><i class="bi bi-arrow-up"></i> 5%</small>
-                    </div>
-                    <canvas id="barChart"></canvas>
+        <div class="col">
+            <i class="icon bi bi-receipt-cutoff"></i>
+            <div class="content">
+                <b>Gastos totales</b>
+                <div class="info">
+                    <p>$<span id="kpiGastos">0.00</span></p>
                 </div>
             </div>
         </div>
+        <div class="col">
+            <i class="icon bi bi-wallet2"></i>
+            <div class="content">
+                <b>Balance</b>
+                <div class="info">
+                    <p>$<span id="kpiBalance">0.00</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <i class="icon bi bi-journal-text"></i>
+            <div class="content">
+                <b>Pedidos totales</b>
+                <div class="info">
+                    <p><span id="kpiPedidos">0</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <i class="icon bi bi-cart"></i>
+            <div class="content">
+                <b>Compras totales</b>
+                <div class="info">
+                    <p><span id="kpiCompras">0</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <i class="icon bi bi-person-add"></i>
+            <div class="content">
+                <b>Clientes nuevos</b>
+                <div class="info">
+                    <p><span id="kpiClientes">0</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <i class="icon bi bi-coin"></i>
+            <div class="content">
+                <b>Ticket promedio</b>
+                <div class="info">
+                    <p>$<span id="kpiTicket">0.00</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    </body>
+    <div class="row graphics home-charts">
+        <div class="col">
+            <div class="content">
+                <b>Tendencia financiera</b>
+                <canvas id="financeChart"></canvas>
+            </div>
+        </div>
+        <div class="col">
+            <div class="content">
+                <b>Clientes nuevos por periodo</b>
+                <canvas id="clientsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row graphics home-charts">
+        <div class="col">
+            <div class="content">
+                <b>Más vendidos</b>
+                <canvas id="topSoldChart"></canvas>
+            </div>
+        </div>
+        <div class="col">
+            <div class="content">
+                <b>Más comprados</b>
+                <canvas id="topBoughtChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <p class="home-empty visually-hidden" id="homeEmptyState">No hay datos para el rango seleccionado.</p>
+</section>
+</body>
 </html>

@@ -65,3 +65,126 @@
         min-width: 100%;
     }
 }
+
+.home-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--background);
+}
+
+.home-header h1 {
+    margin: 0;
+    font-size: 28px;
+    color: var(--primary-color);
+}
+
+.home-header p {
+    margin: 8px 0 0;
+    color: var(--text);
+}
+
+.home-filters {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(140px, 1fr));
+    gap: 12px;
+    align-items: end;
+}
+
+.input-label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-label label {
+    font-size: 14px;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.home-range {
+    font-size: 14px;
+    color: var(--text);
+}
+
+.home-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 0;
+}
+
+.home-kpis .col {
+    min-width: 100%;
+}
+
+.home-charts {
+    margin: 0;
+    gap: 16px;
+}
+
+.home-charts .content {
+    min-height: 360px;
+}
+
+.home-charts canvas {
+    width: 100% !important;
+    height: 280px !important;
+}
+
+.home-empty {
+    margin: 0;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px dashed var(--border);
+    background: var(--background);
+    text-align: center;
+    color: var(--text);
+}
+
+@media screen and (max-width: 1500px) {
+    .home-filters {
+        grid-template-columns: repeat(3, minmax(140px, 1fr));
+    }
+
+    .home-kpis {
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .home-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .home-filters {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+    }
+
+    .home-kpis {
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .home-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .home-kpis {
+        grid-template-columns: 1fr;
+    }
+}
+
