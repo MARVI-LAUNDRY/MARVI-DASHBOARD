@@ -7,7 +7,6 @@ const footer = document.querySelector('footer');
 
 const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
-const eyePasswordButton = document.getElementById('eye-password-button')
 const loginSubmitButton = document.getElementById('login-submit-button');
 const recoveryButton = document.getElementById('recovery-button');
 
@@ -21,6 +20,7 @@ const resetCodeInput = document.getElementById('reset-code');
 const resetPasswordInput = document.getElementById('reset-password');
 const resetSubmitButton = document.getElementById('reset-submit-button');
 const resetBackButton = document.getElementById('reset-back-button');
+const eyeButtons = document.getElementsByName('eye');
 
 const loginControls = [usernameInput, passwordInput, loginSubmitButton];
 const recoveryControls = [recoveryEmailInput, recoverySubmitButton, recoveryBackButton];
@@ -32,6 +32,11 @@ const clearInputs = () => {
     recoveryEmailInput.value = '';
     resetCodeInput.value = '';
     resetPasswordInput.value = '';
+    passwordInput.type = 'password';
+    resetPasswordInput.type = 'password';
+    eyeButtons.forEach((eyeButton) => {
+        eyeButton.innerHTML = "<i class='bi bi-eye'></i>";
+    });
 };
 
 const setDisabled = (controls, disabled) => {
@@ -108,16 +113,29 @@ window.addEventListener('pageshow', () => {
 
 window.addEventListener('resize', () => {
     scrollPage();
-})
+});
 
-eyePasswordButton.addEventListener('click', () => {
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyePasswordButton.innerHTML = "<i class='bi bi-eye-slash'></i>";
+const togglePasswordVisibility = (input, button) => {
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.innerHTML = "<i class='bi bi-eye-slash'></i>";
     } else {
-        passwordInput.type = 'password';
-        eyePasswordButton.innerHTML = "<i class='bi bi-eye'></i>";
+        input.type = 'password';
+        button.innerHTML = "<i class='bi bi-eye'></i>";
     }
+};
+
+eyeButtons.forEach((eyeButton) => {
+    eyeButton.addEventListener('click', () => {
+        const passwordContainer = eyeButton.closest('.input-password');
+        const input = passwordContainer?.querySelector('input');
+
+        if (!input) {
+            return;
+        }
+
+        togglePasswordVisibility(input, eyeButton);
+    });
 });
 
 loginSubmitButton.addEventListener('click', async () => {

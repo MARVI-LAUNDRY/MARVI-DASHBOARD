@@ -32,7 +32,7 @@
             <label for="password"><i class="bi bi-unlock-fill"></i> Contraseña:</label>
             <div class="input-password">
                 <input type="password" id="password" placeholder="Ingresa tu contraseña"/>
-                <span id="eye-password-button"><i class="bi bi-eye"></i></span>
+                <span name="eye"><i class="bi bi-eye"></i></span>
             </div>
         </div>
         <button class="btn primary" id="login-submit-button">Iniciar sesión</button>
@@ -59,7 +59,10 @@
         </div>
         <div class="input-label">
             <label for="reset-password"><i class="bi bi-lock-fill"></i> Nueva contraseña:</label>
-            <input type="text" id="reset-password" placeholder="Ingresa tu nueva contraseña" disabled/>
+            <div class="input-password">
+                <input type="password" id="reset-password" placeholder="Ingresa tu nueva contraseña" disabled/>
+                <span name="eye"><i class="bi bi-eye"></i></span>
+            </div>
         </div>
         <button class="btn primary" id="reset-submit-button" disabled>Cambiar contraseña</button>
         <button class="btn secondary-link" id="reset-back-button" disabled>Volver al inicio</button>
